@@ -28,7 +28,7 @@ module.exports.UserRegisterService = async (userDetails) => {
             userModelData.userType = userType;
             userModelData.dateCreated = new Date();
 
-            userModelData.order.push(userDetails.orderId);   // array for orders 
+            // userModelData.order.push(userDetails.orderId); 
 
             userModelData.save()
                 .then((result) => {

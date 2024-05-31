@@ -20,12 +20,13 @@ class OrderService {
         return order;
     }
 }
-module.exports.OrderService = new OrderService();
+module.exports.OrderService = OrderService;
 
 module.exports.CreateOrderService = async (username, orderData, orderTypeData) => {
     return new Promise(async (resolve, reject) => {
         try {
-            
+            const orderService = new OrderService();
+
             // FIND THE USER WHO PLACES ORDER
             const userToUpdate = await User.findOne({ username: username });
             if (!userToUpdate) {
@@ -33,17 +34,18 @@ module.exports.CreateOrderService = async (username, orderData, orderTypeData) =
             }
 
             // PLACING THE ORDER (CALLING THE CLASS ABOVE)
-            const newOrder = await OrderService.createOrder(orderData, orderTypeData);
-            userToUpdate.order.push(newOrder._id);
-
-            // UPDATE USER WITH THEIR ORDER ID
-            userToUpdate.save()
-                .then((result) => {
-                    resolve(true);
-                })
-                .catch((error) => {
-                    reject(false);
-                });
+            const newOrder = await orderService.createOrder(orderData, orderTypeData);
+            
+            try {
+                const updatedUser = await User.findOneAndUpdate(
+                    { username: username },
+                    { $push: { order: newOrder._id } },
+                    { new: true }
+                );
+                resolve(true); 
+            } catch (error) {
+                reject(error);
+            }
         } catch (error) {
             reject(error);
         }

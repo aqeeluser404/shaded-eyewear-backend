@@ -3,6 +3,7 @@ const router = express.Router();
 const OrderController = require('../src/controllers/orderController')
 const { verifyToken, requireAdmin, requireUser } = require('../middleware/authentication');
 
+// user routes
 router.post('/user/order', verifyToken, requireUser, OrderController.CreateOrderController)
 
 module.exports = router;
