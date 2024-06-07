@@ -4,18 +4,18 @@ const UserController = require('../src/controllers/userController')
 const { verifyToken, requireAdmin, requireUser } = require('../middleware/authentication');
 
 // Admin routes
-// router.post('/admin/user/create', verifyToken, requireAdmin, UserController.AdminCreateUserController);
-// router.get('/admin/user/all', verifyToken, requireAdmin, UserController.AdminViewUsersController);
-// router.put('/admin/user/update/:id', verifyToken, requireAdmin, UserController.AdminUpdateUserController);
-// router.delete('/admin/user/delete/:id', verifyToken, requireAdmin, UserController.AdminDeleteUserController);
+router.post('/admin/user/create', verifyToken, requireAdmin, UserController.CreateUserController);
+router.get('/admin/user/all', verifyToken, requireAdmin, UserController.FindAllUsersController);
+router.put('/admin/user/update/:id', verifyToken, requireAdmin, UserController.UpdateUserController);
+router.delete('/admin/user/delete/:id', verifyToken, requireAdmin, UserController.DeleteUserController);
 
-// user authentication routes
+// public routes
 router.post('/user/register', UserController.UserRegisterController)
 router.post('/user/login', UserController.UserLoginController);
 
-// token
-// router.get('/user/view', verifyToken, requireUser, UserController.UserDetailsFromTokenController);
-// user
-// router.get('/user/view/:id', verifyToken, requireUser, UserController.UserDetailsFromIdController);
+// read from token
+router.get('/user/view', verifyToken, UserController.UserDetailsFromTokenController);
+// read from id
+router.get('/user/view/:id', verifyToken, UserController.UserDetailsFromIdController);
 
 module.exports = router;

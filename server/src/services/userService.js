@@ -2,7 +2,6 @@ const User = require('../models/userModel')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
-
 const jwtSecret = process.env.JWT_SECRET;
 
 // USER AUTHENTICATION SERVICES
@@ -67,8 +66,7 @@ module.exports.UserLoginService = async (username, email, password) => {
         }
     });
 }
-
-// READ USERS (VERIFY AUTHORIY)
+// READ USER SERVICES
 module.exports.FindUserByIdService = async (id) => {
     return new Promise(async (resolve, reject) => {
         try {
@@ -98,7 +96,6 @@ module.exports.FindUserByTokenService = async (token) => {
         }
     })
 }
-
 // ADMIN USER SERVICES
 module.exports.CreateUserService = async (userDetails) => {
     return new Promise(async (resolve, reject) => {
