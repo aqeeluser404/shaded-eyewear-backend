@@ -31,11 +31,16 @@ module.exports.FindUserByIdController = async (req, res) => {
 }
 module.exports.FindUserByTokenController = async (req, res) => {
     try {
-      // get the token from the Authorization header
-      const token = req.headers.authorization.split(' ')[1];
-  
-      const user = await UserService.getUserFromTokenService(token);
-      res.json(user);
+      if (req.headers['auth-token']) {
+        const token = req.headers['auth-token'];
+        // const token = req.headers.authorization.split(' ')[1];
+        
+        const user = await UserService.FindUserByTokenService(token);
+        res.json(user);
+      }
+      else {
+        res.status(400).json({ message: 'Authorization header is missing' });
+      }
     } 
     catch (error) {
       res.status(500).json({ message: error.message });
@@ -45,7 +50,7 @@ module.exports.FindUserByTokenController = async (req, res) => {
 module.exports.CreateUserController = async (req, res) => {
     try {
         await UserService.CreateUserService(req.body);
-        res.status(201).send('User created by admin');
+        res.status(201).send('User created successfully');
     } 
     catch (error) {
         res.status(400).send(error.message);
@@ -66,7 +71,7 @@ module.exports.UpdateUserController = async (req, res) => {
         const userDetails = req.body;
 
         await UserService.UpdateUserService(id, userDetails);
-        res.status(200).send('User updated by admin');
+        res.status(200).send('User updated successfully');
     } 
     catch (error) {
         res.status(404).send(error.message);
@@ -75,7 +80,7 @@ module.exports.UpdateUserController = async (req, res) => {
 module.exports.DeleteUserController = async (req, res) => {
     try {
         await UserService.DeleteUserService(req.params.id);
-        res.status(200).send('User deleted by admin');
+        res.status(200).send('User deleted successfully');
     } 
     catch (error) {
         res.status(404).send(error.message);

@@ -1,4 +1,6 @@
 const User = require('../models/userModel')
+const Order = require('../models/orderModel')
+const OrderType = require('../models/orderTypeModel')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
@@ -112,6 +114,7 @@ module.exports.CreateUserService = async (userDetails) => {
             userModelData.lastName = userDetails.lastName;
             userModelData.email = userDetails.email;
             // location not included in initial registration
+            userModelData.phone = userDetails.phone;
             userModelData.username = userDetails.username;
             userModelData.password = hashedPassword;
             userModelData.userType = userDetails.userType;
@@ -165,6 +168,11 @@ module.exports.DeleteUserService = async (id) => {
             const user = await User.findByIdAndDelete(id);
             if (!user) 
                 throw new Error('User not found');
+
+            // Delete the associated orders
+            await Order.deleteMany({ user: id });
+            // await OrderType.deleteMany({ _id: id });            
+            
             resolve(true);
         } catch (error) {
             reject(error);
