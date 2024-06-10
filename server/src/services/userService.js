@@ -6,7 +6,7 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const jwtSecret = process.env.JWT_SECRET;
 
-// USER AUTHENTICATION SERVICES
+// <-----------------------------------------------------------> AUTHENTICATION
 module.exports.UserRegisterService = async (userDetails) => {
     return new Promise(async (resolve, reject) => {
         try {
@@ -14,7 +14,6 @@ module.exports.UserRegisterService = async (userDetails) => {
             if (existingUser) {
                 return reject('Username already exists');
             }
-
             const userModelData = new User();
             const userType = process.env.CREATE_ADMIN === 'true' ? 'admin' : 'user'; 
             const hashedPassword = await bcrypt.hash(userDetails.password, 10);
@@ -22,14 +21,12 @@ module.exports.UserRegisterService = async (userDetails) => {
             userModelData.firstName = userDetails.firstName;
             userModelData.lastName = userDetails.lastName;
             userModelData.email = userDetails.email;
-            // location not included in initial registration
             userModelData.phone = userDetails.phone;
             userModelData.username = userDetails.username;
             userModelData.password = hashedPassword;
-            userModelData.userType = userType;
+            userModelData.userType = userType;  // defaults to user
             userModelData.dateCreated = new Date();
-
-            // userModelData.order.push(userDetails.orderId); 
+            // order and location creates default fields
 
             userModelData.save()
                 .then((result) => {
@@ -53,7 +50,6 @@ module.exports.UserLoginService = async (username, email, password) => {
                     { email: email }
                 ]
             });
-        
             if (!user) 
                 throw new Error('User not found')
         
@@ -68,7 +64,7 @@ module.exports.UserLoginService = async (username, email, password) => {
         }
     });
 }
-// READ USER SERVICES
+// <-----------------------------------------------------------> USER SERVICES
 module.exports.FindUserByIdService = async (id) => {
     return new Promise(async (resolve, reject) => {
         try {
@@ -98,7 +94,6 @@ module.exports.FindUserByTokenService = async (token) => {
         }
     })
 }
-// ADMIN USER SERVICES
 module.exports.CreateUserService = async (userDetails) => {
     return new Promise(async (resolve, reject) => {
         try {
@@ -113,12 +108,12 @@ module.exports.CreateUserService = async (userDetails) => {
             userModelData.firstName = userDetails.firstName;
             userModelData.lastName = userDetails.lastName;
             userModelData.email = userDetails.email;
-            // location not included in initial registration
             userModelData.phone = userDetails.phone;
             userModelData.username = userDetails.username;
             userModelData.password = hashedPassword;
-            userModelData.userType = userDetails.userType;
+            userModelData.userType = userDetails.userType; // specified by admin
             userModelData.dateCreated = new Date();
+            // order and location creates default fields
 
             userModelData.save()
                 .then((result) => {
@@ -169,10 +164,17 @@ module.exports.DeleteUserService = async (id) => {
             if (!user) 
                 throw new Error('User not found');
 
-            // Delete the associated orders
-            await Order.deleteMany({ user: id });
-            // await OrderType.deleteMany({ _id: id });            
-            
+            // find order associated with user
+            const orders = await Order.find({ user: id })
+
+            // Delete the associated orders with ordertype
+            for (let order of orders) {
+                const orderType = await OrderType.findById(order.orderType)
+                if (orderType) {
+                    await OrderType.deleteOne({ _id: order.orderType })
+                }
+                await Order.deleteOne({ _id: order._id });
+            }
             resolve(true);
         } catch (error) {
             reject(error);

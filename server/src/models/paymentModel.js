@@ -25,7 +25,7 @@ const paymentSchema = new mongoose.Schema(
             required: true 
         },
 
-        // FKID FIELD
+        // <-----------------------------------------------------------> FKID FIELD
         order: {
             type: Schema.Types.ObjectId,
             ref: 'Order',

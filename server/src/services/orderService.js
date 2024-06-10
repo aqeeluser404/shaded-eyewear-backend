@@ -2,6 +2,7 @@ const Order = require('../models/orderModel');
 const OrderType = require('../models/orderTypeModel');
 const User = require('../models/userModel'); 
 
+// <-----------------------------------------------------------> CREATE ORDER
 class OrderService {
     async createOrder(orderData, orderTypeData) {
         const order = new Order(orderData);
@@ -33,7 +34,7 @@ module.exports.CreateOrderService = async (username, orderData, orderTypeData) =
                 return reject('User not found');
             }
 
-            // PLACING THE ORDER (CALLING THE CLASS ABOVE)
+            // PLACING THE ORDER
             const newOrder = await orderService.createOrder(orderData, orderTypeData);
             
             try {

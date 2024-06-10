@@ -3,7 +3,7 @@ const router = express.Router();
 const UserController = require('../src/controllers/userController')
 const { verifyToken, requireAdmin } = require('../middleware/authentication');
 
-// Admin routes
+// admin routes
 router.post('/admin/user/create', verifyToken, requireAdmin, UserController.CreateUserController);
 router.get('/admin/user/all', verifyToken, requireAdmin, UserController.FindAllUsersController);
 

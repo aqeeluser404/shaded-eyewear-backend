@@ -20,7 +20,7 @@ const orderSchema = new Schema(
             type: Date
         },
 
-        // FKID FIELD
+        // <-----------------------------------------------------------> FKID FIELD
         user: {
             type: Schema.Types.ObjectId,
             ref: 'User',

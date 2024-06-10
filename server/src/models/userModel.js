@@ -58,12 +58,8 @@ const userSchema = new mongoose.Schema(
             type: Date,
             default: Date.now
         },
-        // isDeleted: {
-        //     type: Boolean,
-        //     default: false
-        // },
 
-        // FKID FIELD
+        // <-----------------------------------------------------------> FKID FIELD
         order: [{
             type: Schema.Types.ObjectId,
             ref: 'Order'
