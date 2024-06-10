@@ -6,6 +6,7 @@ const { verifyToken, requireAdmin } = require('../middleware/authentication');
 // admin routes
 router.post('/admin/user/create', verifyToken, requireAdmin, UserController.CreateUserController);
 router.get('/admin/user/all', verifyToken, requireAdmin, UserController.FindAllUsersController);
+// router.post('/user/forgot-password', UserController.UserForgotPasswordController);
 
 // user & admin routes
 router.get('/user/view', verifyToken, UserController.FindUserByTokenController);    // read from token

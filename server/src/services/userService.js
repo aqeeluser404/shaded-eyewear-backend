@@ -1,8 +1,12 @@
 const User = require('../models/userModel')
 const Order = require('../models/orderModel')
 const OrderType = require('../models/orderTypeModel')
+
 const bcrypt = require('bcryptjs')
-const jwt = require('jsonwebtoken');
+const jwt = require('jsonwebtoken')
+const crypto = require('crypto')
+const nodemailer = require('nodemailer')
+
 require('dotenv').config();
 const jwtSecret = process.env.JWT_SECRET;
 
@@ -64,6 +68,51 @@ module.exports.UserLoginService = async (username, email, password) => {
         }
     });
 }
+// module.exports.UserForgotPasswordService = async (req, email) => {
+//     return new Promise(async (resolve, reject) => {
+//         try {
+//             const user = await User.findOne({ email: email });
+//             if (!user) {
+//                 return reject('User not found');
+//             }
+
+//             // Create a password reset token
+//             const resetToken = crypto.randomBytes(20).toString('hex');
+//             const resetTokenExpiry = Date.now() + 3600000; // 1 hour from now
+
+//             user.resetPasswordToken = resetToken;
+//             user.resetPasswordExpires = resetTokenExpiry;
+
+//             await user.save();
+
+//             // Send the password reset token to the user's email using company details
+//             const transporter = nodemailer.createTransport({
+//                 service: 'Gmail',
+//                 auth: {
+//                     user: process.env.EMAIL_USERNAME,
+//                     pass: process.env.EMAIL_PASSWORD
+//                 }
+//             })
+//             const mailOptions = {
+//                 to: user.email,
+//                 from: 'passwordreset@demo.com',
+//                 subject: 'Node.js Password Reset',
+//                 text: `You are receiving this because you have requested the reset of the password for your account.\n\nPlease click on the following link, or paste this into your browser to complete the process:\n\nhttp://${req.headers.host}/reset/${resetToken}\n\nIf you did not request this, please ignore this email and your password will remain unchanged.\n`
+//             };
+//             transporter.sendMail(mailOptions)
+//             .then(() => {
+//                 resolve('An e-mail has been sent to ' + user.email + ' with further instructions.');
+//             })
+//             .catch((err) => {
+//                 console.error("Failed to send email: ", err);
+//                 reject('Failed to send email');
+//             });
+//         } 
+//         catch (error) {
+//             reject(error)
+//         }
+//     })
+// }
 // <-----------------------------------------------------------> USER SERVICES
 module.exports.FindUserByIdService = async (id) => {
     return new Promise(async (resolve, reject) => {

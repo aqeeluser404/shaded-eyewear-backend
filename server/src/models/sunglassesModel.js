@@ -21,6 +21,10 @@ const sunglassesSchema = new mongoose.Schema(
         stock: {
             type: Number,
             required: true
+        },
+        images: {
+            type: [String],
+            required: false
         }
     }, { collection: 'Sunglasses' }
 )

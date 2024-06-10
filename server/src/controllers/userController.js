@@ -18,6 +18,15 @@ module.exports.UserLoginController = async (req, res) => {
         res.status(400).send(error.message);
     }
 }
+// module.exports.UserForgotPasswordController = async (req, res) => {
+//     try {
+//         const email = req.body.email;
+//         const message = await UserService.UserForgotPasswordService(req, email);
+//         res.status(200).json({ message: message });
+//     } catch (error) {
+//         res.status(500).json({ error: error.toString() });
+//     }
+// }
 // USER SERVICES
 module.exports.FindUserByIdController = async (req, res) => {
     const { id } = req.params
