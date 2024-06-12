@@ -4,8 +4,8 @@ const OrderType = require('../models/orderTypeModel')
 
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
-const crypto = require('crypto')
-const nodemailer = require('nodemailer')
+// const crypto = require('crypto')
+// const nodemailer = require('nodemailer')
 
 require('dotenv').config();
 const jwtSecret = process.env.JWT_SECRET;
