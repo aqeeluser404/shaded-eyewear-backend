@@ -1,4 +1,6 @@
 const Sunglasses = require('../models/sunglassesModel')
+const path = require('path')
+const fs = require('fs');
 
 module.exports.CreateSunglassesService = async (sunglassesDetails) => {
     return new Promise(async (resolve, reject) => {
@@ -79,12 +81,26 @@ module.exports.UpdateSunglassesService = async (id, sunglassesDetails) => {
 module.exports.DeleteSunglassesService = async (id) => {
     return new Promise(async (resolve, reject) => {
         try {
-            const sunglasses = await Sunglasses.findByIdAndDelete(id);
+            const sunglasses = await Sunglasses.findById(id);
             if (!sunglasses) {
                 return reject('Sunglasses not found');
             }
+            
+            // Delete the image files
+            sunglasses.images.forEach(imagePath => {
+                const uploadsPath = path.join(imagePath);
+                fs.unlink(uploadsPath, err => {
+                    if (err) {
+                        console.error(`Failed to delete file: ${uploadsPath}`);
+                    }
+                });
+            });
+            
+            // Delete the sunglasses from the database
+            await Sunglasses.findByIdAndDelete(id);
             resolve(true);
-        } catch (error) {
+        } 
+        catch (error) {
             reject(error);
         }
     });
