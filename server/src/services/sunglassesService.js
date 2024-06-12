@@ -14,6 +14,7 @@ module.exports.CreateSunglassesService = async (sunglassesDetails) => {
             sunglassesModelData.color = sunglassesDetails.color
             sunglassesModelData.price = sunglassesDetails.price
             sunglassesModelData.stock = sunglassesDetails.stock
+            sunglassesModelData.images = sunglassesDetails.images
 
             sunglassesModelData.save()
                 .then((result) => {
@@ -53,11 +54,23 @@ module.exports.FindAllSunglassesService = async () => {
 module.exports.UpdateSunglassesService = async (id, sunglassesDetails) => {
     return new Promise(async (resolve, reject) => {
         try {
-            const sunglasses = await Sunglasses.findByIdAndUpdate(id, sunglassesDetails, { new: true });
+            const sunglasses = await Sunglasses.findById(id);
             if (!sunglasses) {
                 return reject('Sunglasses not found');
             }
-            resolve(sunglasses);
+            sunglasses.model = sunglassesDetails.model || sunglasses.model;
+            sunglasses.description = sunglassesDetails.description || sunglasses.description;
+            sunglasses.color = sunglassesDetails.color || sunglasses.color;
+            sunglasses.price = sunglassesDetails.price || sunglasses.price;
+            sunglasses.stock = sunglassesDetails.stock || sunglasses.stock;
+
+            // Add new images to the images array
+            if (sunglassesDetails.images) {
+                sunglassesDetails.images.forEach(image => sunglasses.images.push(image));
+            }
+
+            const updatedSunglasses = await sunglasses.save();
+            resolve(updatedSunglasses);
         } catch (error) {
             reject(error);
         }

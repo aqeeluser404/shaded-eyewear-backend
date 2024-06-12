@@ -2,7 +2,9 @@ const SunglassesService = require('../services/sunglassesService')
 
 module.exports.CreateSunglassesController = async (req, res) => {
     try {
-        await SunglassesService.CreateSunglassesService(req.body);
+        const sunglassesDetails = req.body;
+        sunglassesDetails.images = req.files.map(file => file.path);
+        await SunglassesService.CreateSunglassesService(sunglassesDetails);
         res.status(201).send('Sunglasses created successfully');
     }
     catch (error) {
@@ -29,7 +31,12 @@ module.exports.FindAllSunglassesController = async (req, res) => {
 }
 module.exports.UpdateSunglassesController = async (req, res) => {
     try {
-        const sunglasses = await SunglassesService.UpdateSunglassesService(req.params.id, req.body);
+        const sunglassesDetails = req.body;
+        if (req.files) {
+            sunglassesDetails.images = req.files.map(file => file.path);
+        }
+        
+        const sunglasses = await SunglassesService.UpdateSunglassesService(req.params.id, sunglassesDetails);
         res.status(200).json(sunglasses);
     }
     catch (error) {
