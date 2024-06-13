@@ -7,23 +7,24 @@ const paymentSchema = new mongoose.Schema(
             type: Number,
             required: true
         },
+        // currency
         paymentDate: {
             type: Date,
             required: true
         },
         status: {
             type: String,
-            enum: ['pending', 'processing', 'paid', 'unpaid'],
+            // enum: ['pending', 'processing', 'paid', 'unpaid'],
             default: 'pending'
         },
-        paymentMethod: {
+        description: {
             type: String,
             required: true
         },
-        transactionId: {
-            type: String,
-            required: true 
-        },
+        // paymentMethod: {
+        //     type: String,
+        //     required: true
+        // },
 
         // <-----------------------------------------------------------> FKID FIELD
         order: {
