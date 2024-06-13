@@ -2,8 +2,9 @@ const OrderService = require('../services/orderService')
 
 module.exports.CreateOrderController = async (req, res) => {
     try {
-        const { username, orderData, orderTypeData } = req.body;
-        await OrderService.CreateOrderService(username, orderData, orderTypeData)
+        const { id } = req.params;
+        const { orderData, orderTypeData } = req.body;
+        await OrderService.CreateOrderService(id, orderData, orderTypeData)
         res.status(200).json({ message: 'Order created successfully' });
     }
     catch (error) {
@@ -29,8 +30,8 @@ module.exports.FindAllOrdersController = async (req, res) => {
 }
 module.exports.FindAllMyOrdersController = async (req, res) => {
     try {
-        const { username } = req.params;
-        const orders = await OrderService.FindAllMyOrdersService(username);
+        const { id } = req.params;
+        const orders = await OrderService.FindAllMyOrdersService(id);
         res.status(200).json(orders);
     } catch (error) {
         res.status(500).json({ message: 'Failed to find orders', error: error.toString() });
@@ -38,9 +39,10 @@ module.exports.FindAllMyOrdersController = async (req, res) => {
 }
 module.exports.UpdateOrdersController = async (req, res) => {
     try {
+        const { orderData, orderTypeData } = req.body;
         const { id } = req.params;
-        const { orderData } = req.body;
-        const updatedOrder = await OrderService.UpdateOrdersService(id, orderData);
+
+        const updatedOrder = await OrderService.UpdateOrdersService(id, orderData, orderTypeData);
         res.status(200).json(updatedOrder);
     } catch (error) {
         res.status(500).json({ message: 'Failed to update order', error: error.toString() });
