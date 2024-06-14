@@ -1,34 +1,82 @@
 const Order = require('../models/orderModel');
 const OrderType = require('../models/orderTypeModel');
+const Sunglasses = require('../models/sunglassesModel')
 const User = require('../models/userModel'); 
 
 // <-----------------------------------------------------------> CREATE ORDER
 class OrderService {
+
     async createOrder(orderData, orderTypeData) {
         const order = new Order(orderData);
+    
+        // calculate price and item amount - decrease stock of sunglasses
+        order.totalAmount = 0;
+        order.totalItems = 0; // initialize totalItems
+        for (let i = 0; i < order.sunglasses.length; i++) {
+            const sunglasses = await Sunglasses.findById(order.sunglasses[i]._id);
+            if (!sunglasses) {
+                throw new Error('Sunglasses not found');
+            }
+            sunglasses.stock -= order.sunglasses[i].quantity; // decrease the stock by the quantity of this type of sunglasses ordered
+            if (sunglasses.stock < 0) {
+                throw new Error('Not enough stock');
+            }
+            
+            await sunglasses.save();
+            order.totalAmount += sunglasses.price * order.sunglasses[i].quantity; // calculate the total amount based on the price and quantity of each type of sunglasses
+            order.totalItems += order.sunglasses[i].quantity; // update totalItems based on the quantity of each type of sunglasses
+        }
+    
+        // determining order type based on order amount
         let orderType;
-
         if (order.orderType) {
             orderType = await OrderType.findById(order.orderType);
             if (!orderType) {
-                return reject('OrderType not found');
+                throw new Error('OrderType not found');
             }
         } else {
             orderType = new OrderType(orderTypeData);
         }
-
         if (order.totalAmount >= orderType.priceThreshold) {
             orderType.type = 'delivery';
         } else {
             orderType.type = 'pickup';
         }
-
+    
+        // update db data
         await orderType.save();
         order.orderType = orderType._id;
         await order.save();
-
         return order;
     }
+    async cancelOrder(orderId) {
+        const order = await Order.findById(orderId);
+        if (!order) {
+            throw new Error('Order not found');
+        }
+    
+        // Loop through the sunglasses array and increase the stock
+        for (let i = 0; i < order.sunglasses.length; i++) {
+            const sunglasses = await Sunglasses.findById(order.sunglasses[i]._id);
+            if (!sunglasses) {
+                throw new Error('Sunglasses not found');
+            }
+            sunglasses.stock += order.sunglasses[i].quantity; // increase the stock by the quantity of this type of sunglasses ordered
+            await sunglasses.save();
+        }
+    
+        // Remove the orderType
+        const orderType = await OrderType.findByIdAndDelete(order.orderType);
+        if (!orderType) {
+            throw new Error('OrderType not found');
+        }
+    
+        order.status = 'cancelled';
+        order.orderType = null;
+    
+        await order.save();
+        return order;
+    }    
 }
 module.exports.OrderService = OrderService;
 
@@ -38,7 +86,6 @@ module.exports.CreateOrderService = async (id, orderData, orderTypeData) => {
             const orderService = new OrderService();
 
             // FIND THE USER WHO PLACES ORDER
-            // const userToUpdate = await User.findOne({ username: username });
             const userToUpdate = await User.findOne({ _id: id });
             if (!userToUpdate) {
                 return reject('User not found');
@@ -61,6 +108,26 @@ module.exports.CreateOrderService = async (id, orderData, orderTypeData) => {
             reject(error);
         }
     });
+}
+module.exports.CancelOrderService = async (orderId) => {
+    try {
+        const orderService = new OrderService();
+
+        // CANCEL THE ORDER
+        const cancelledOrder = await orderService.cancelOrder(orderId);
+        
+        // Get the userId from the cancelledOrder
+        const userId = cancelledOrder.user;
+
+        const updatedUser = await User.findOneAndUpdate(
+            { _id: userId }, // use userId from the order
+            { $pull: { order: orderId } },
+            { new: true }
+        );
+        return true; 
+    } catch (error) {
+        throw error;
+    }
 }
 module.exports.FindOrderByIdService = async (id) => {
     return new Promise(async (resolve, reject) => {
@@ -103,6 +170,7 @@ module.exports.FindAllMyOrdersService = async (userId) => {
         }
     })
 }
+// might have to redo the update
 module.exports.UpdateOrdersService = async (id, orderData, orderTypeData) => {
     return new Promise(async (resolve, reject) => {
         try {
@@ -115,7 +183,7 @@ module.exports.UpdateOrdersService = async (id, orderData, orderTypeData) => {
             // Fetch the orderType to update
             const orderTypeToUpdate = await OrderType.findById(orderToUpdate.orderType);
             if (!orderTypeToUpdate) {
-                console.log('OrderType not found for orderType ID:', orderToUpdate.orderType); // Log the problematic orderType ID
+                console.log('OrderType not found for orderType ID:', orderToUpdate.orderType);
                 return reject('OrderType not found');
             }
 
@@ -155,6 +223,16 @@ module.exports.DeleteOrderService = async (id) => {
             const orderToDelete = await Order.findById(id);
             if (!orderToDelete) {
                 return reject('Order not found');
+            }
+
+            // Loop through the sunglasses array and increase the stock
+            for (let i = 0; i < orderToDelete.sunglasses.length; i++) {
+                const sunglasses = await Sunglasses.findById(orderToDelete.sunglasses[i]._id);
+                if (!sunglasses) {
+                    return reject('Sunglasses not found');
+                }
+                sunglasses.stock += orderToDelete.sunglasses[i].quantity; // increase the stock by the quantity of this type of sunglasses ordered
+                await sunglasses.save();
             }
 
             // Remove the order from the user

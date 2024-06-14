@@ -34,6 +34,9 @@
 
     const sunglassesRoutes = require('./routes/sunglassesRoutes')
     app.use(sunglassesRoutes)
+
+    const gatewayRoutes = require('./routes/gatewayRoutes')
+    app.use(gatewayRoutes)
 /*
     listen
 */

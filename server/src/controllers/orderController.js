@@ -11,6 +11,16 @@ module.exports.CreateOrderController = async (req, res) => {
         res.status(500).json({ message: 'Failed to create order', error: error.toString() });
     }
 }
+module.exports.CancelOrderController = async (req, res) => {
+    try {
+        const { id } = req.params;
+        await OrderService.CancelOrderService(id)
+        res.status(200).json({ message: 'Order cancelled successfully' });
+    }
+    catch (error) {
+        res.status(500).json({ message: 'Failed to cancel order', error: error.toString() });
+    }
+}
 module.exports.FindOrderByIdController = async (req, res) => {
     try {
         const { id } = req.params;

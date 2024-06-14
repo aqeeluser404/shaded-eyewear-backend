@@ -8,6 +8,7 @@ router.get('/admin/order/all', verifyToken, requireAdmin, OrderController.FindAl
 
 // user & admin routes
 router.post('/order/create/:id', verifyToken, OrderController.CreateOrderController)
+router.put('/order/cancel-order/:id', verifyToken, OrderController.CancelOrderController)
 router.get('/order/my-orders/:id', verifyToken, OrderController.FindAllMyOrdersController)
 router.get('/order/view/:id', verifyToken, OrderController.FindOrderByIdController)
 router.put('/order/update/:id', verifyToken, OrderController.UpdateOrdersController)

@@ -1,8 +1,9 @@
-// const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
-
+// const Paystack = require('paystack')(process.env.PAYSTACK_SECRET_KEY);
+const User = require('./userService')
 const Order = require('./orderService')
+const Payment = require('../models/paymentModel')
 
-module.exports.CreateGatewayService = async (orderId, source) => {
+module.exports.CreateGatewayService = async (orderId) => {
     return new Promise(async (resolve, reject) => {
         try {
             // Fetch order
@@ -11,23 +12,81 @@ module.exports.CreateGatewayService = async (orderId, source) => {
                 throw new Error('Order not found');
             }
 
-            const charge = await stripe.charges.create({
-                amount: order.totalAmount,
-                currency: 'zar',
-                source: source,
-                description: `Charge for order ${order._id}`,
+            // Fetch user
+            const user = await User.FindUserByIdService(order.user); 
+            if (!user) {
+                throw new Error('User not found');
+            }
+
+            // (TEMPORARY EXAMPLE PLACEHOLDER) Payment gateway code
+            const payment = new Payment({
+                paymentAmount: order.totalAmount,
+                currency: 'ZAR',
+                paymentDate: Date.now(),
+                status: 'paid',
+                description: 'this item has been paid for',
+                order: order._id
             });
 
-            // Update the order status after a successful charge
+            await payment.save();
             order.status = 'paid';
             await order.save();
 
-            resolve({ charge, order });
+            resolve({ payment, order });
+
+            // Payment gateway code
+            // const charge = await Paystack.transaction.initialize({
+            //     email: user.email,
+            //     amount: order.totalAmount * 100,
+            //     currency: 'ZAR',
+            //     reference: `${order._id}`,
+            // });
+
+            // // Update the order status after a successful charge
+            // if (charge.status === 'SUCCESSFUL') {
+            //     order.status = 'paid';
+            //     await order.save();
+            // }
+
+            // resolve({ charge, order });
         } catch (error) {
             reject(error);
         }
     });
 }
+
+// On frontend
+
+// in index file
+// {/* <script src="https://js.paystack.co/v1/inline.js"></script> */}
+
+// on the form
+// methods: {
+//     onPayButtonClick() {
+//       // Collect necessary information (like email and amount)
+//       const email = this.email;
+//       const amount = this.amount;
+  
+//       // Initialize the Paystack transaction
+//       var handler = PaystackPop.setup({
+//         key: 'your_public_key', // Replace with your public key
+//         email: email,
+//         amount: amount * 100, // amount in kobo
+//         currency: "ZAR", // currency
+//         ref: ''+Math.floor((Math.random() * 1000000000) + 1), // generates a pseudo-unique reference
+//         callback: function(response) {
+//             // Perform action on successful payment (e.g., send the response to your server)
+//         },
+//         onClose: function() {
+//             // Perform action when the Paystack Inline modal is closed
+//         }
+//       });
+  
+//       // Open the Paystack Inline modal
+//       handler.openIframe();
+//     }
+//   }
+  
 
 // There are several payment gateways in South Africa that you might consider as alternatives to Stripe123. Here are a few examples:
 

@@ -9,15 +9,20 @@ const orderSchema = new Schema(
         },
         status: {
             type: String,
-            enum: ['pending', 'paid'],
+            // enum: ['pending', 'paid'],
             default: 'pending'
+        },
+        totalItems: {
+            type: Number,
+            required: true
         },
         totalAmount: {
             type: Number,
             required: true
         },
         deliveryDate: {
-            type: Date
+            type: Date,
+            // default: 'pending'
         },
 
         // <-----------------------------------------------------------> FKID FIELD
@@ -27,9 +32,15 @@ const orderSchema = new Schema(
             required: true
         },
         sunglasses: [{
-            type: Schema.Types.ObjectId,
-            ref: 'Sunglasses',
-            required: true
+            _id: {
+                type: Schema.Types.ObjectId,
+                ref: 'Sunglasses',
+                required: true
+            },
+            quantity: {
+                type: Number,
+                required: true
+            }
         }],
         payment: {
             type: Schema.Types.ObjectId,

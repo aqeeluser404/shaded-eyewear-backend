@@ -8,7 +8,7 @@ module.exports.CreatePaymentService = async (charge, order) => {
                 currency: charge.currency,
                 paymentDate: Date.now(),
                 status: charge.status,
-                description: charge.description,
+                description: charge.reference,
                 order: order._id
             });
             await payment.save();
