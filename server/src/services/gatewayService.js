@@ -29,6 +29,9 @@ module.exports.CreateGatewayService = async (orderId) => {
             });
 
             await payment.save();
+
+            // update order details
+            order.payment = payment._id
             order.status = 'paid';
             await order.save();
 
@@ -45,6 +48,7 @@ module.exports.CreateGatewayService = async (orderId) => {
             // // Update the order status after a successful charge
             // if (charge.status === 'SUCCESSFUL') {
             //     order.status = 'paid';
+            //     order.payment = payment._id
             //     await order.save();
             // }
 
