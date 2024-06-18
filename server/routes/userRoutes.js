@@ -6,7 +6,12 @@ const { verifyToken, requireAdmin } = require('../middleware/authentication');
 // admin routes
 router.post('/admin/user/create', verifyToken, requireAdmin, UserController.CreateUserController);
 router.get('/admin/user/all', verifyToken, requireAdmin, UserController.FindAllUsersController);
+router.get('/admin/user/logged-in', verifyToken, requireAdmin, UserController.FindUsersLoggedInController)
+router.get('/admin/user/frequent-users', verifyToken, requireAdmin, UserController.FindUsersLoggedInController)
 // router.post('/user/forgot-password', UserController.UserForgotPasswordController);
+
+// user routes
+router.post('/user/logout/:id', verifyToken, UserController.UserLogoutController)
 
 // user & admin routes
 router.get('/user/view', verifyToken, UserController.FindUserByTokenController);    // read from token
@@ -16,6 +21,6 @@ router.delete('/user/delete/:id', verifyToken, UserController.DeleteUserControll
 
 // public routes
 router.post('/user/register', UserController.UserRegisterController)
-router.post('/user/login', UserController.UserLoginController);
+router.post('/user/login', UserController.UserLoginController)
 
 module.exports = router;

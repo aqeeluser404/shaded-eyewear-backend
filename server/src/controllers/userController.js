@@ -18,6 +18,31 @@ module.exports.UserLoginController = async (req, res) => {
         res.status(400).send(error.message);
     }
 }
+module.exports.UserLogoutController = async (req, res) => {
+    const { id } = req.params
+    try {
+        const user = await UserService.UserLogoutService(id)
+        res.send('User logged out successfully');
+    } catch (error) {
+        res.status(400).send(error.message);
+    }
+}
+module.exports.FindUsersLoggedInController = async (req, res) => {
+    try {
+        const users = await UserService.FindUsersLoggedInService();
+        res.json(users);
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+}
+module.exports.FindUsersFrequentlyLoggedInController = async (req, res) => {
+    try {
+        const users = await UserService.FindUsersFrequentlyLoggedInService();
+        res.json(users);
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+}
 // module.exports.UserForgotPasswordController = async (req, res) => {
 //     try {
 //         const email = req.body.email;

@@ -14,29 +14,7 @@ const userSchema = new mongoose.Schema(
         email: {
             type: String,
             required: true
-        },
-        location: {
-            streetAddress: {
-                type: String,
-                default: 'Not provided'
-            },
-            suburb: {
-                type: String,
-                default: 'Not provided'
-            },
-            city: {
-                type: String,
-                default: 'Not provided'
-            },
-            province: {
-                type: String,
-                default: 'Not provided'
-            },
-            postalCode: {
-                type: Number,
-                default: 0
-            }
-        },        
+        },   
         phone: {
             type: String,
             required: true
@@ -59,6 +37,46 @@ const userSchema = new mongoose.Schema(
             default: Date.now
         },
 
+        // LOCATION DATA
+        location: {
+            streetAddress: {
+                type: String,
+                default: 'Not provided'
+            },
+            suburb: {
+                type: String,
+                default: 'Not provided'
+            },
+            city: {
+                type: String,
+                default: 'Not provided'
+            },
+            province: {
+                type: String,
+                default: 'Not provided'
+            },
+            postalCode: {
+                type: Number,
+                default: 0
+            }
+        },     
+
+        // LOGIN DATA & HISTORY
+        loginInfo: {
+            lastLogin: {
+                type: Date,
+                default: null
+            },
+            isLoggedIn: {
+                type: Boolean,
+                default: false
+            },
+            loginCount: {
+                type: Number,
+                default: 0
+            }
+        },
+
         // <-----------------------------------------------------------> FKID FIELD
         order: [{
             type: Schema.Types.ObjectId,
@@ -71,6 +89,20 @@ userSchema.methods.toJSON = function() {
     var obj = this.toObject();
     delete obj.password;
     return obj;
+}
+
+userSchema.methods.updateLoginStatus = function() {
+    if (this.loginInfo.lastLogin === null) {
+        this.loginInfo.lastLogin = Date.now()
+    }
+    this.loginInfo.isLoggedIn = true
+    this.loginInfo.loginCount += 1
+    this.save()
+}
+
+userSchema.methods.logout = function() {
+    this.loginInfo.isLoggedIn = false;
+    this.save();
 }
 
 module.exports = mongoose.model('User', userSchema);

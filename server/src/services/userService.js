@@ -60,11 +60,51 @@ module.exports.UserLoginService = async (username, email, password) => {
             const validPassword = await bcrypt.compare(password, user.password);
             if (!validPassword) 
                 throw new Error('Invalid password')
+
+            // Update login status
+            user.updateLoginStatus()
             
             const token = jwt.sign({ _id: user._id, userType: user.userType }, jwtSecret);
             resolve(token)
         } catch (error) {
             reject(error)
+        }
+    });
+}
+module.exports.UserLogoutService = async (id) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const user = await User.findById(id);
+            if (!user) 
+                throw new Error('User not found')
+            
+            // Update logout status
+            user.logout();
+            
+            resolve('User logged out successfully')
+        } catch (error) {
+            reject(error)
+        }
+    });
+}
+module.exports.FindUsersLoggedInService = async () => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const users = await User.find({ "loginInfo.isLoggedIn": true });
+            resolve(users);
+        } catch (error) {
+            reject(error);
+        }
+    });
+}
+module.exports.FindUsersFrequentlyLoggedInService = async () => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            // Find all users and sort them by loginCount in descending order
+            const users = await User.find().sort({ "loginInfo.loginCount": -1 });
+            resolve(users);
+        } catch (error) {
+            reject(error);
         }
     });
 }
