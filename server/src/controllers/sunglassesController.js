@@ -1,23 +1,29 @@
-const SunglassesService = require('../services/sunglassesService')
-
+/*
+    dependencies
+*/
+    const SunglassesService = require('../services/sunglassesService')
+/*
+    ================================================================= sunglasses controllers
+*/
 module.exports.CreateSunglassesController = async (req, res) => {
+    const sunglassesDetails = req.body;
+    sunglassesDetails.images = req.files.map(file => file.path);
     try {
-        const sunglassesDetails = req.body;
-        sunglassesDetails.images = req.files.map(file => file.path);
         await SunglassesService.CreateSunglassesService(sunglassesDetails);
-        res.status(201).send('Sunglasses created successfully');
+        res.status(201).json({ message: 'Sunglasses created successfully' });
     }
     catch (error) {
-        res.status(400).send(error.message);
+        res.status(400).json({ error: error.message });
     }
 }
 module.exports.FindSunglassesByIdController = async (req, res) => {
+    const { id } = req.params
     try {
-        const sunglasses = await SunglassesService.FindSunglassesByIdService(req.params.id);
+        const sunglasses = await SunglassesService.FindSunglassesByIdService(id);
         res.status(200).json(sunglasses);
     }
     catch (error) {
-        res.status(404).send(error.message);
+        res.status(404).json({ error: error.message });
     }
 }
 module.exports.FindAllSunglassesController = async (req, res) => {
@@ -26,29 +32,29 @@ module.exports.FindAllSunglassesController = async (req, res) => {
         res.status(200).json(sunglasses);
     }
     catch (error) {
-        res.status(500).send(error.message);
+        res.status(404).json({ error: error.message });
     }
 }
 module.exports.UpdateSunglassesController = async (req, res) => {
+    const { id } = req.params
+    const sunglassesDetails = req.body;
     try {
-        const sunglassesDetails = req.body;
         if (req.files) {
             sunglassesDetails.images = req.files.map(file => file.path);
         }
-        
-        const sunglasses = await SunglassesService.UpdateSunglassesService(req.params.id, sunglassesDetails);
-        res.status(200).json(sunglasses);
+        await SunglassesService.UpdateSunglassesService(id, sunglassesDetails);
+        res.status(200).json({ message: 'Sunglasses updated successfully' });
     }
     catch (error) {
-        res.status(400).send(error.message);
+        res.status(404).json({ error: error.message });
     }
 }
 module.exports.DeleteSunglassesController = async (req, res) => {
     try {
         await SunglassesService.DeleteSunglassesService(req.params.id);
-        res.status(200).send('Sunglasses deleted successfully');
+        res.status(200).json({ message: 'Sunglasses deleted successfully' });
     }
     catch (error) {
-        res.status(404).send(error.message);
+        res.status(404).json({ error: error.message });
     }
 }

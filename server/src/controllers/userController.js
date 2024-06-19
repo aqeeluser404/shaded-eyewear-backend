@@ -14,8 +14,8 @@ module.exports.UserRegisterController = async (req, res) => {
     }
 }
 module.exports.UserLoginController = async (req, res) => {
+    const { username, email, password } = req.body;
     try {
-        const { username, email, password } = req.body;
         const token = await UserService.UserLoginService(username, email, password);
         res.header('auth-token', token).json({ token });
     } catch (error) {
@@ -48,7 +48,7 @@ module.exports.FindUsersFrequentlyLoggedInController = async (req, res) => {
     }
 }
 /*
-    ================================================================= user services
+    ================================================================= user controllers
 */
 module.exports.FindUserByIdController = async (req, res) => {
     const { id } = req.params
@@ -62,23 +62,20 @@ module.exports.FindUserByIdController = async (req, res) => {
 }
  module.exports.FindUserByTokenController = async (req, res) => {
     try {
-      if (req.headers['auth-token']) {
-        const token = req.headers['auth-token'];
-         // const token = req.headers.authorization.split(' ')[1];
-        const user = await UserService.FindUserByTokenService(token);
-        res.json(user);
-      }
-      else {
-        res.status(400).json({ error: 'Authorization header is missing' });
-      }
+        if (req.headers['auth-token']) {
+            const token = req.headers['auth-token'];
+            // const token = req.headers.authorization.split(' ')[1];
+            const user = await UserService.FindUserByTokenService(token);
+            res.json(user);
+        }
+        else {
+            res.status(400).json({ error: 'Authorization header is missing' });
+        }
     } 
     catch (error) {
-      res.status(500).json({ error: error.message });
+        res.status(500).json({ error: error.message });
     }
 }
-/*
-    ================================================================= admin controllers
-*/
 module.exports.CreateUserController = async (req, res) => {
     try {
         await UserService.CreateUserService(req.body);

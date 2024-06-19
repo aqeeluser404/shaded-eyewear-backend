@@ -1,107 +1,80 @@
-const Sunglasses = require('../models/sunglassesModel')
-const path = require('path')
-const fs = require('fs');
-
+/*
+    dependencies
+*/
+    const path = require('path')
+    const fs = require('fs');
+    const Sunglasses = require('../models/sunglassesModel')
+/*
+    ================================================================= sunglasses services
+*/
 module.exports.CreateSunglassesService = async (sunglassesDetails) => {
-    return new Promise(async (resolve, reject) => {
-        try {
-            const existingSunglasses = await Sunglasses.findOne({ model: sunglassesDetails.model });
-            if (existingSunglasses) {
-                return reject('Model already exists')
-            }
-            const sunglassesModelData = new Sunglasses()
-
-            sunglassesModelData.model = sunglassesDetails.model
-            sunglassesModelData.description = sunglassesDetails.description
-            sunglassesModelData.color = sunglassesDetails.color
-            sunglassesModelData.price = sunglassesDetails.price
-            sunglassesModelData.stock = sunglassesDetails.stock
-            sunglassesModelData.images = sunglassesDetails.images
-
-            sunglassesModelData.save()
-                .then((result) => {
-                    resolve(true)
-                })
-                .catch((error) => {
-                    reject(false)
-                })
-        } catch (error) {
-            reject(error);
+    try {
+        const existingSunglasses = await Sunglasses.findOne({ model: sunglassesDetails.model });
+        if (existingSunglasses) {
+            throw new Error('Model already exists');
         }
-    })
+
+        const sunglassesModelData = new Sunglasses({
+            model: sunglassesDetails.model,
+            description: sunglassesDetails.description,
+            color: sunglassesDetails.color,
+            price: sunglassesDetails.price,
+            stock: sunglassesDetails.stock,
+            images: sunglassesDetails.images
+        })
+
+        await sunglassesModelData.save();
+        return true;
+    } catch (error) {
+        throw(error);
+    }
 }
 module.exports.FindSunglassesByIdService = async (id) => {
-    return new Promise(async (resolve, reject) => {
-        try {
-            const sunglasses = await Sunglasses.findById(id);
-            if (!sunglasses) {
-                return reject('Sunglasses not found');
-            }
-            resolve(sunglasses);
-        } catch (error) {
-            reject(error);
-        }
-    });
+    const sunglasses = await Sunglasses.findById(id);
+    if (!sunglasses) {
+        throw new Error('Sunglasses not found');
+    }
+    return sunglasses;
 }
 module.exports.FindAllSunglassesService = async () => {
-    return new Promise(async (resolve, reject) => {
-        try {
-            const sunglasses = await Sunglasses.find();
-            resolve(sunglasses);
-        } catch (error) {
-            reject(error);
-        }
-    });
+    const sunglasses = await Sunglasses.find({});
+    if (!sunglasses) {
+        throw new Error('No sunglasses found')
+    }
+    return sunglasses;
 }
 module.exports.UpdateSunglassesService = async (id, sunglassesDetails) => {
-    return new Promise(async (resolve, reject) => {
-        try {
-            const sunglasses = await Sunglasses.findById(id);
-            if (!sunglasses) {
-                return reject('Sunglasses not found');
-            }
-            sunglasses.model = sunglassesDetails.model || sunglasses.model;
-            sunglasses.description = sunglassesDetails.description || sunglasses.description;
-            sunglasses.color = sunglassesDetails.color || sunglasses.color;
-            sunglasses.price = sunglassesDetails.price || sunglasses.price;
-            sunglasses.stock = sunglassesDetails.stock || sunglasses.stock;
-
-            // Add new images to the images array
-            if (sunglassesDetails.images) {
-                sunglassesDetails.images.forEach(image => sunglasses.images.push(image));
-            }
-
-            const updatedSunglasses = await sunglasses.save();
-            resolve(updatedSunglasses);
-        } catch (error) {
-            reject(error);
-        }
-    });
+    
+    // First, update the sunglasses without the images
+    const { images, ...detailsWithoutImages } = sunglassesDetails;
+    
+    let sunglasses = await Sunglasses.findByIdAndUpdate(id, detailsWithoutImages, { new: true });
+    if (!sunglasses) {
+        throw new Error('Sunglasses not found');
+    }
+    // Then, if there are new images, add them to the sunglasses
+    if (images) {
+        images.forEach(image => sunglasses.images.push(image));
+        sunglasses = await sunglasses.save(); 
+    }
+    return sunglasses;
 }
 module.exports.DeleteSunglassesService = async (id) => {
-    return new Promise(async (resolve, reject) => {
-        try {
-            const sunglasses = await Sunglasses.findById(id);
-            if (!sunglasses) {
-                return reject('Sunglasses not found');
+    const sunglasses = await Sunglasses.findById(id);
+    if (!sunglasses) {
+        throw new Error('Sunglasses not found');
+    }
+    // Delete the image files
+    for (const imagePath of sunglasses.images) {
+        const uploadsPath = path.join(imagePath);
+        fs.unlink(uploadsPath, err => {
+            if (err) {
+                console.error(`Failed to delete file: ${uploadsPath}`);
             }
-            
-            // Delete the image files
-            sunglasses.images.forEach(imagePath => {
-                const uploadsPath = path.join(imagePath);
-                fs.unlink(uploadsPath, err => {
-                    if (err) {
-                        console.error(`Failed to delete file: ${uploadsPath}`);
-                    }
-                });
-            });
-            
-            // Delete the sunglasses from the database
-            await Sunglasses.findByIdAndDelete(id);
-            resolve(true);
-        } 
-        catch (error) {
-            reject(error);
-        }
-    });
+        });
+    }
+    // Delete the sunglasses from the database
+    await Sunglasses.findByIdAndDelete(id);
+
+    return true;
 }
