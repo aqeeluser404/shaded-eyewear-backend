@@ -4,12 +4,12 @@
     require('dotenv').config()
     const express = require('express')
     const app = express()
-    const mongoose = require('mongoose')
-    // const cors = require('cors')
+    const compression = require('compression')
+    const db = require('./database/db')
 /*
     config
 */
-    // app.cors(cors())
+    app.use(compression())
     app.use(express.json())
 /*
     middleware
@@ -26,17 +26,17 @@
     app.get('/', (req, res) => {
         res.send('Backend is running');
     });
-    const userRoutes = require('./routes/userRoutes')
-    app.use(userRoutes);
 
-    const orderRoutes = require('./routes/orderRoutes')
-    app.use(orderRoutes)
+    const routes = [
+        require('./routes/userRoutes'),
+        require('./routes/orderRoutes'),
+        require('./routes/sunglassesRoutes'),
+        require('./routes/gatewayRoutes')
+    ];
 
-    const sunglassesRoutes = require('./routes/sunglassesRoutes')
-    app.use(sunglassesRoutes)
-
-    const gatewayRoutes = require('./routes/gatewayRoutes')
-    app.use(gatewayRoutes)
+    routes.forEach(route => {
+        app.use(route);
+    });
 /*
     listen
 */
@@ -50,13 +50,10 @@
 /*
     mongodb config
 */
-    mongoose.connect(`mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@cluster0.czmy3sa.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority&appName=Cluster0`,);
-    const db = mongoose.connection;
+    db.connect();
 
-    db.on('error', (error) => {
-        console.error('Error Connecting to DB:', error);
-    });
-
-    db.once('open', () => {
-        console.log('Successfully Connected to DB');
+    // error handling middleware
+    app.use((err, req, res, next) => {
+        console.error(err.stack);
+        res.status(500).send('Something broke!');
     });
