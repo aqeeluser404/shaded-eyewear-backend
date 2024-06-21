@@ -1,10 +1,15 @@
-// const Paystack = require('paystack')(process.env.PAYSTACK_SECRET_KEY);
-const User = require('./userService')
-const Order = require('./orderService')
-const Payment = require('../models/paymentModel')
-
-module.exports.CreateGatewayService = async (orderId) => {
-    return new Promise(async (resolve, reject) => {
+/*
+    dependencies
+*/
+    // const Paystack = require('paystack')(process.env.PAYSTACK_SECRET_KEY);
+    const User = require('./userService')
+    const Order = require('./orderService')
+    const Payment = require('../models/paymentModel')
+/*
+    ================================================================= // SERVICES
+*/
+    // -------------------------------------------------------------- PAYMENT
+    module.exports.CreateGatewayService = async (orderId) => {
         try {
             // Fetch order
             const order = await Order.FindOrderByIdService(orderId);
@@ -35,7 +40,7 @@ module.exports.CreateGatewayService = async (orderId) => {
             order.status = 'paid';
             await order.save();
 
-            resolve({ payment, order });
+            return { payment, order };
 
             // Payment gateway code
             // const charge = await Paystack.transaction.initialize({
@@ -52,12 +57,11 @@ module.exports.CreateGatewayService = async (orderId) => {
             //     await order.save();
             // }
 
-            // resolve({ charge, order });
+            // return { charge, order };
         } catch (error) {
-            reject(error);
+            throw error;
         }
-    });
-}
+    }
 
 // On frontend
 

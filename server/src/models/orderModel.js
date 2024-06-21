@@ -26,11 +26,6 @@ const orderSchema = new Schema(
         },
 
         // <-----------------------------------------------------------> FKID FIELD
-        user: {
-            type: Schema.Types.ObjectId,
-            ref: 'User',
-            required: true
-        },
         sunglasses: [{
             _id: {
                 type: Schema.Types.ObjectId,
@@ -45,6 +40,11 @@ const orderSchema = new Schema(
         payment: {
             type: Schema.Types.ObjectId,
             ref: 'Payment'
+        },
+        user: {
+            type: Schema.Types.ObjectId,
+            ref: 'User',
+            required: true
         },
         orderType: {
             type: Schema.Types.ObjectId,

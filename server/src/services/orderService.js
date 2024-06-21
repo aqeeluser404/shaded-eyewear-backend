@@ -1,261 +1,291 @@
-const Order = require('../models/orderModel');
-const OrderType = require('../models/orderTypeModel');
-const Sunglasses = require('../models/sunglassesModel')
-const User = require('../models/userModel'); 
+/*
+    dependencies
+*/
+    const Order = require('../models/orderModel');
+    const OrderType = require('../models/orderTypeModel');
+    const Sunglasses = require('../models/sunglassesModel')
+    const User = require('../models/userModel'); 
 
-// <-----------------------------------------------------------> CREATE ORDER
-class OrderService {
-
-    async createOrder(orderData, orderTypeData) {
-        const order = new Order(orderData);
-    
-        // calculate price and item amount - decrease stock of sunglasses
-        order.totalAmount = 0;
-        order.totalItems = 0; // initialize totalItems
-        for (let i = 0; i < order.sunglasses.length; i++) {
-            const sunglasses = await Sunglasses.findById(order.sunglasses[i]._id);
-            if (!sunglasses) {
-                throw new Error('Sunglasses not found');
-            }
-            sunglasses.stock -= order.sunglasses[i].quantity; // decrease the stock by the quantity of this type of sunglasses ordered
-            if (sunglasses.stock < 0) {
-                throw new Error('Not enough stock');
-            }
+/*
+    ================================================================= // CLASSES
+*/
+    class OrderService {
+        // ---------------------------------------------------------- CREATE ORDER
+        async createOrder(orderData, orderTypeData, userId) {
             
-            await sunglasses.save();
-            order.totalAmount += sunglasses.price * order.sunglasses[i].quantity; // calculate the total amount based on the price and quantity of each type of sunglasses
-            order.totalItems += order.sunglasses[i].quantity; // update totalItems based on the quantity of each type of sunglasses
+            // INIT ORDER OBJECT TO CALCULATE
+            const order = new Order(orderData);
+        
+            // CALCULATE PRICE AND TOTAL ITEMS --> decrease stock of sunglasses
+            order.totalItems = 0;
+            order.totalAmount = 0;
+
+            for (let i = 0; i < order.sunglasses.length; i++) {
+                const sunglasses = await Sunglasses.findById(order.sunglasses[i]._id);
+                if (!sunglasses) {
+                    throw new Error('Sunglasses not found');
+                }
+                sunglasses.stock -= order.sunglasses[i].quantity; // decrease the stock by the quantity of this type of sunglasses ordered
+                if (sunglasses.stock < 0) {
+                    throw new Error('Not enough stock');
+                }
+                await sunglasses.save();
+                order.totalAmount += sunglasses.price * order.sunglasses[i].quantity; // calculate the total amount based on the price and quantity of each type of sunglasses
+                order.totalItems += order.sunglasses[i].quantity; // update totalItems based on the quantity of each type of sunglasses
+            }
+        
+            // DETERMINE ORDERTYPE BASED ON THRESHOLD
+            let orderType;
+
+            if (order.orderType) {
+                orderType = await OrderType.findById(order.orderType);
+                if (!orderType) {
+                    throw new Error('OrderType not found');
+                }
+            } else {
+                orderType = new OrderType(orderTypeData);
+            }
+            if (order.totalAmount >= orderType.priceThreshold) {
+                orderType.type = 'delivery';
+                order.deliveryDate = new Date(order.orderDate.getTime() + 2*24*60*60*1000);     // 2 days in advance
+            } else {
+                orderType.type = 'pickup';      
+                order.deliveryDate = null;
+            }
+
+            // SAVE CALCULATED ORDER FIELDS INTO SECOND OBJECT --> save to the database
+            const orderModelData = new Order({
+                orderDate: order.orderDate,
+                status: 'pending',
+                totalItems: order.totalItems,
+                totalAmount: order.totalAmount,
+                deliveryDate: order.deliveryDate,
+                sunglasses: order.sunglasses,
+                payment: null,
+                user: userId,
+                orderType: orderType._id
+            })
+        
+            // SAVE ORDERTYPE AND ORDER TO MONGO
+            await orderType.save();
+            await orderModelData.save();
+
+            // RETURN THE ORDER OBJECT
+            return orderModelData;
         }
-    
-        // determining order type based on order amount
-        let orderType;
-        if (order.orderType) {
-            orderType = await OrderType.findById(order.orderType);
+        // ----------------------------------------------------------- CANCEL ORDER
+        async cancelOrder(orderId) {
+
+            // FIND THE ORDER TO CANCEL
+            const order = await Order.findById(orderId);
+            if (!order) {
+                throw new Error('Order not found');
+            }
+        
+            // Loop through the sunglasses array and increase the stock
+            for (let i = 0; i < order.sunglasses.length; i++) {
+                const sunglasses = await Sunglasses.findById(order.sunglasses[i]._id);
+                if (!sunglasses) {
+                    throw new Error('Sunglasses not found');
+                }
+                sunglasses.stock += order.sunglasses[i].quantity; // increase the stock by the quantity of this type of sunglasses ordered
+                await sunglasses.save();
+            }
+        
+            // Remove the orderType
+            const orderType = await OrderType.findByIdAndDelete(order.orderType);
             if (!orderType) {
                 throw new Error('OrderType not found');
             }
-        } else {
-            orderType = new OrderType(orderTypeData);
-        }
-        if (order.totalAmount >= orderType.priceThreshold) {
-            orderType.type = 'delivery';
-        } else {
-            orderType.type = 'pickup';
-        }
-    
-        // update db data
-        await orderType.save();
-        order.orderType = orderType._id;
-        await order.save();
-        return order;
+        
+            order.status = 'cancelled';
+            order.orderType = null;
+        
+            await order.save();
+            return order;
+        }    
     }
-    async cancelOrder(orderId) {
-        const order = await Order.findById(orderId);
-        if (!order) {
-            throw new Error('Order not found');
-        }
-    
-        // Loop through the sunglasses array and increase the stock
-        for (let i = 0; i < order.sunglasses.length; i++) {
-            const sunglasses = await Sunglasses.findById(order.sunglasses[i]._id);
-            if (!sunglasses) {
-                throw new Error('Sunglasses not found');
-            }
-            sunglasses.stock += order.sunglasses[i].quantity; // increase the stock by the quantity of this type of sunglasses ordered
-            await sunglasses.save();
-        }
-    
-        // Remove the orderType
-        const orderType = await OrderType.findByIdAndDelete(order.orderType);
-        if (!orderType) {
-            throw new Error('OrderType not found');
-        }
-    
-        order.status = 'cancelled';
-        order.orderType = null;
-    
-        await order.save();
-        return order;
-    }    
-}
-module.exports.OrderService = OrderService;
-
-module.exports.CreateOrderService = async (id, orderData, orderTypeData) => {
-    return new Promise(async (resolve, reject) => {
+    module.exports.OrderService = OrderService;
+/*
+    ================================================================= // SERVICES
+*/
+    // -------------------------------------------------------------- CREATE ORDER
+    module.exports.CreateOrderService = async (id, orderData, orderTypeData) => {
         try {
             const orderService = new OrderService();
-
+    
             // FIND THE USER WHO PLACES ORDER
-            const userToUpdate = await User.findOne({ _id: id });
+            const userToUpdate = await User.findById(id);
             if (!userToUpdate) {
-                return reject('User not found');
+                throw new Error('User not found');
             }
-
-            // PLACING THE ORDER
-            const newOrder = await orderService.createOrder(orderData, orderTypeData);
-            
+    
             try {
+                // PLACING THE ORDER
+                const newOrder = await orderService.createOrder(orderData, orderTypeData, userToUpdate._id);
+    
                 const updatedUser = await User.findOneAndUpdate(
                     { _id: id },
                     { $push: { order: newOrder._id } },
                     { new: true }
                 );
-                resolve(true); 
+                
+                return true; 
             } catch (error) {
-                reject(error);
+                throw error;
             }
         } catch (error) {
-            reject(error);
+            throw error;
         }
-    });
-}
-module.exports.CancelOrderService = async (orderId) => {
-    try {
-        const orderService = new OrderService();
-
-        // CANCEL THE ORDER
-        const cancelledOrder = await orderService.cancelOrder(orderId);
-        
-        // Get the userId from the cancelledOrder
-        const userId = cancelledOrder.user;
-
-        const updatedUser = await User.findOneAndUpdate(
-            { _id: userId }, // use userId from the order
-            { $pull: { order: orderId } },
-            { new: true }
-        );
-        return true; 
-    } catch (error) {
-        throw error;
     }
-}
-module.exports.FindOrderByIdService = async (id) => {
-    return new Promise(async (resolve, reject) => {
+    // -------------------------------------------------------------- CANCEL ORDER
+    module.exports.CancelOrderService = async (orderId) => {
+        try {
+            const orderService = new OrderService();
+
+            // CANCEL THE ORDER
+            const cancelledOrder = await orderService.cancelOrder(orderId);
+            
+            // Get the userId from the cancelledOrder
+            const userId = cancelledOrder.user;
+
+            const updatedUser = await User.findOneAndUpdate(
+                { _id: userId }, // use userId from the order
+                { $pull: { order: orderId } },
+                { new: true }
+            );
+            return true; 
+        } catch (error) {
+            throw error;
+        }
+    }
+    // -------------------------------------------------------------- FIND ORDER BY ID
+    module.exports.FindOrderByIdService = async (id) => {
         try {
             const order = await Order.findById(id)
             if (!order) {
-                return reject('Order not found')
+                throw new Error('Order not found')
             }
-            resolve(order)
+            return order;
         }
         catch (error) {
-            reject(error)
+            throw error;
         }
-    })
-}
-module.exports.FindAllOrdersServices = async () => {
-    return new Promise(async (resolve, reject) => {
+    }
+    // -------------------------------------------------------------- FIND ALL ORDERS
+    module.exports.FindAllOrdersServices = async () => {
         try {
             const orders = await Order.find()
-            resolve(orders)
+            return orders;
         }
         catch (error) {
-            reject (error)
+            throw error;
         }
-    })
-}
-module.exports.FindAllMyOrdersService = async (userId) => {
-    return new Promise(async (resolve, reject) => {
+    }
+    // -------------------------------------------------------------- FIND ALL MY ORDERS
+    module.exports.FindAllMyOrdersService = async (userId) => {
         try {
             // FIND THE USER WITH THEIR ORDERS
             const userOrders = await User.findById(userId);
             if (!userOrders) {
-                return reject('User not found');
+                throw new Error('User not found');
             }
             const orders = await Order.find({ _id: { $in: userOrders.order } })
-            resolve(orders)
+            return orders;
         }
         catch (error) {
-            reject (error)
+            throw error;
         }
-    })
-}
-// might have to redo the update
-module.exports.UpdateOrdersService = async (id, orderData, orderTypeData) => {
-    return new Promise(async (resolve, reject) => {
-        try {
-            // Fetch the order to update
-            const orderToUpdate = await Order.findById(id);
-            if (!orderToUpdate) {
-                return reject('Order not found');
+    }
+    // -------------------------------------------------------------- UPDATE ORDER (REDO MAYBE)
+    module.exports.UpdateOrdersService = async (id, orderData, orderTypeData) => {
+        return new Promise(async (resolve, reject) => {
+            try {
+                // Fetch the order to update
+                const orderToUpdate = await Order.findById(id);
+                if (!orderToUpdate) {
+                    return reject('Order not found');
+                }
+
+                // Fetch the orderType to update
+                const orderTypeToUpdate = await OrderType.findById(orderToUpdate.orderType);
+                if (!orderTypeToUpdate) {
+                    console.log('OrderType not found for orderType ID:', orderToUpdate.orderType);
+                    return reject('OrderType not found');
+                }
+
+                // Determine the order type based on the price threshold
+                if (orderData.totalAmount >= orderTypeData.priceThreshold) {
+                    orderTypeToUpdate.type = 'delivery';
+                } else {
+                    orderTypeToUpdate.type = 'pickup';
+                }
+                
+                // Update the priceThreshold of the orderType
+                orderTypeToUpdate.priceThreshold = orderTypeData.priceThreshold;
+
+                // Update the order
+                const updatedOrder = await Order.findByIdAndUpdate(
+                    id,
+                    { 
+                        totalAmount: orderData.totalAmount,
+                        sunglasses: orderData.sunglasses
+                    },
+                    { new: true }
+                );
+
+                // Save the updated orderType
+                await orderTypeToUpdate.save();
+
+                resolve({ updatedOrder, updatedOrderType: orderTypeToUpdate });
+            } catch (error) {
+                reject(error);
             }
-
-            // Fetch the orderType to update
-            const orderTypeToUpdate = await OrderType.findById(orderToUpdate.orderType);
-            if (!orderTypeToUpdate) {
-                console.log('OrderType not found for orderType ID:', orderToUpdate.orderType);
-                return reject('OrderType not found');
-            }
-
-            // Determine the order type based on the price threshold
-            if (orderData.totalAmount >= orderTypeData.priceThreshold) {
-                orderTypeToUpdate.type = 'delivery';
-            } else {
-                orderTypeToUpdate.type = 'pickup';
-            }
-            
-            // Update the priceThreshold of the orderType
-            orderTypeToUpdate.priceThreshold = orderTypeData.priceThreshold;
-
-            // Update the order
-            const updatedOrder = await Order.findByIdAndUpdate(
-                id,
-                { 
-                    totalAmount: orderData.totalAmount,
-                    sunglasses: orderData.sunglasses
-                },
-                { new: true }
-            );
-
-            // Save the updated orderType
-            await orderTypeToUpdate.save();
-
-            resolve({ updatedOrder, updatedOrderType: orderTypeToUpdate });
-        } catch (error) {
-            reject(error);
-        }
-    });
-}
-module.exports.DeleteOrderService = async (id) => {
-    return new Promise(async (resolve, reject) => {
+        });
+    }
+    // -------------------------------------------------------------- DELETE ORDER
+    module.exports.DeleteOrderService = async (id) => {
         try {
             // Fetch the order to delete
             const orderToDelete = await Order.findById(id);
             if (!orderToDelete) {
-                return reject('Order not found');
+                throw new Error('Order not found');
             }
-
+    
             // Loop through the sunglasses array and increase the stock
             for (let i = 0; i < orderToDelete.sunglasses.length; i++) {
                 const sunglasses = await Sunglasses.findById(orderToDelete.sunglasses[i]._id);
                 if (!sunglasses) {
-                    return reject('Sunglasses not found');
+                    throw new Error('Sunglasses not found');
                 }
                 sunglasses.stock += orderToDelete.sunglasses[i].quantity; // increase the stock by the quantity of this type of sunglasses ordered
                 await sunglasses.save();
             }
-
+    
             // Remove the order from the user
-            const updatedUser = await User.updateOne(
-                { _id: orderToDelete.user }, 
+            // const updatedUser = await User.updateOne(
+            //     { _id: orderToDelete.user }, 
+            //     { $pull: { order: orderToDelete._id } }
+            // );
+            const updatedUser = await User.findOneAndUpdate(
+                { _id: orderToDelete.user },
                 { $pull: { order: orderToDelete._id } }
             );
             if (!updatedUser) {
-                return reject('Failed to update user');
+                throw new Error('Failed to update user');
             }
-
+    
             // Delete the associated OrderType
             const deletedOrderType = await OrderType.findByIdAndDelete(orderToDelete.orderType);
             if (!deletedOrderType) {
-                return reject('Failed to delete OrderType');
+                throw new Error('Failed to delete OrderType');
             }
-
+    
             // Delete the order
             const deletedOrder = await Order.findByIdAndDelete(id);
-            resolve(true);
+            return true;
         } catch (error) {
-            reject(error);
+            throw error;
         }
-    });
-}
+    }
 

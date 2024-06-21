@@ -1,7 +1,12 @@
-const Payment = require('../models/paymentModel')
-
-module.exports.CreatePaymentService = async (charge, order) => {
-    return new Promise(async (resolve, reject) => {
+/*
+    dependencies
+*/
+    const Payment = require('../models/paymentModel')
+/*
+    ================================================================= // SERVICES
+*/
+    // -------------------------------------------------------------- CREATE PAYMENT
+    module.exports.CreatePaymentService = async (charge, order) => {
         try {
             const payment = new Payment({
                 paymentAmount: charge.amount,
@@ -11,10 +16,9 @@ module.exports.CreatePaymentService = async (charge, order) => {
                 description: charge.reference,
                 order: order._id
             });
-            await payment.save();
-            resolve(payment);
+            await payment.save()
+            return payment
         } catch (error) {
-            reject(error);
+            throw(error)
         }
-    });
-}
+    }
