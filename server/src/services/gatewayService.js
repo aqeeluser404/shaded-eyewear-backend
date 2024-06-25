@@ -33,6 +33,7 @@
                 order: order._id
             });
 
+            // update payment details
             await payment.save();
 
             // update order details
