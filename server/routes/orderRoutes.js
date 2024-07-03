@@ -9,6 +9,7 @@
     ================================================================= admin routes
 */
     router.get('/admin/order/all', verifyToken, requireAdmin, OrderController.FindAllOrdersController)
+    router.delete('/order/delete/:id', verifyToken, requireAdmin, OrderController.DeleteOrderController)
 /*
     ================================================================= admin & user routes
 */
@@ -17,6 +18,5 @@
     router.get('/order/my-orders/:id', verifyToken, OrderController.FindAllMyOrdersController)
     router.get('/order/view/:id', verifyToken, OrderController.FindOrderByIdController)
     router.put('/order/update/:id', verifyToken, OrderController.UpdateOrdersController)
-    router.delete('/order/delete/:id', verifyToken, OrderController.DeleteOrderController)
 
     module.exports = router;
