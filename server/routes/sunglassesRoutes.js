@@ -4,7 +4,7 @@
     const express = require('express')
     const router = express.Router();
     const SunglassesController = require('../src/controllers/sunglassesController')
-    const { verifyToken, requireAdmin } = require('../middleware/authentication');
+    const { verifyTokenOptional, verifyToken, requireAdmin } = require('../middleware/authentication');
     const upload = require('../middleware/multerConfig')
 /*
     ================================================================= admin routes
@@ -15,7 +15,7 @@
 /*
     ================================================================= public routes
 */
-    router.get('/sunglasses/view/:id', SunglassesController.FindSunglassesByIdController)
-    router.get('/sunglasses/all', SunglassesController.FindAllSunglassesController)
+    router.get('/sunglasses/view/:id', verifyTokenOptional, SunglassesController.FindSunglassesByIdController)
+    router.get('/sunglasses/all', verifyTokenOptional, SunglassesController.FindAllSunglassesController)
 
 module.exports = router;

@@ -17,6 +17,21 @@
             res.status(400).send('Invalid Token');
         }
     }
+
+    function verifyTokenOptional(req, res, next) {
+        const token = req.header('auth-token');
+        if (token) {
+          try {
+            const verified = jwt.verify(token, jwtSecret);
+            req.user = verified;
+          } catch (error) {
+            // If the token is invalid, just ignore it and treat it as if there was no token.
+            // You might want to log this event for debugging purposes.
+            console.error('Invalid token: ', error);
+          }
+        }
+        next();
+      }
 /*
     ================================================================= ADMIN MIDDLEWARE
 */
@@ -25,7 +40,7 @@
         next();
     }
 
-    module.exports = { verifyToken, requireAdmin };
+    module.exports = { verifyTokenOptional, verifyToken, requireAdmin };
 
 
 

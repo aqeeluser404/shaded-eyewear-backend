@@ -23,7 +23,7 @@
 /*
     ================================================================= public routes
 */
-    router.post('/auth/login', UserController.UserLoginController)
+    router.post('/auth/login', verifyTokenOptional, UserController.UserLoginController)
     router.post('/auth/register', UserController.UserRegisterController)
 
     module.exports = router;

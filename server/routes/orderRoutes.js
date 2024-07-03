@@ -9,7 +9,7 @@
     ================================================================= admin routes
 */
     router.get('/admin/order/all', verifyToken, requireAdmin, OrderController.FindAllOrdersController)
-    router.delete('/order/delete/:id', verifyToken, requireAdmin, OrderController.DeleteOrderController)
+    router.delete('/admin/order/delete/:id', verifyToken, requireAdmin, OrderController.DeleteOrderController)
 /*
     ================================================================= admin & user routes
 */
