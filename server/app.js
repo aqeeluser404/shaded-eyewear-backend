@@ -6,9 +6,11 @@
     const app = express()
     const compression = require('compression')
     const db = require('./database/db')
+    const cors = require('cors');
 /*
     config
 */
+    app.use(cors());
     app.use(compression())
     app.use(express.json())
 /*

@@ -17,7 +17,7 @@
         const { username, email, password } = req.body;
         try {
             const token = await UserService.UserLoginService(username, email, password);
-            res.header('auth-token', token).json({ token });
+            res.header('auth-token', token).send(token);    // change from json to ensure token works
         } catch (error) {
             res.status(400).json({ error: error.message });
         }
