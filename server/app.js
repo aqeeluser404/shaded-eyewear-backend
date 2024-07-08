@@ -13,6 +13,11 @@
     app.use(cors());
     app.use(compression())
     app.use(express.json())
+
+    // required to access images on frontend for (development purposes)
+    const path = require('path');
+    const uploadsDir = path.join(__dirname, './uploads');
+    app.use('/uploads', express.static(uploadsDir));
 /*
     middleware
 */
