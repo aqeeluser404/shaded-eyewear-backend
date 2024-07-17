@@ -92,9 +92,7 @@ userSchema.methods.toJSON = function() {
 }
 
 userSchema.methods.updateLoginStatus = function() {
-    if (this.loginInfo.lastLogin === null) {
-        this.loginInfo.lastLogin = Date.now()
-    }
+    this.loginInfo.lastLogin = Date.now()
     this.loginInfo.isLoggedIn = true
     this.loginInfo.loginCount += 1
     this.save()
