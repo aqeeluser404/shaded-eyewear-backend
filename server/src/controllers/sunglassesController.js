@@ -5,17 +5,31 @@
 /*
     ================================================================= // CONTROLLERS
 */
+    // module.exports.CreateSunglassesController = async (req, res) => {
+    //     const sunglassesDetails = req.body;
+    //     sunglassesDetails.images = req.files.map(file => file.path);
+    //     try {
+    //         await SunglassesService.CreateSunglassesService(sunglassesDetails);
+    //         res.status(201).json({ message: 'Sunglasses created successfully' });
+    //     }
+    //     catch (error) {
+    //         res.status(400).json({ error: error.message });
+    //     }
+    // }
     module.exports.CreateSunglassesController = async (req, res) => {
         const sunglassesDetails = req.body;
-        sunglassesDetails.images = req.files.map(file => file.path);
+        if (req.files && req.files.length > 0) {
+          sunglassesDetails.images = req.files.map(file => file.path);
+        } else {
+          sunglassesDetails.images = [];
+        }
         try {
-            await SunglassesService.CreateSunglassesService(sunglassesDetails);
-            res.status(201).json({ message: 'Sunglasses created successfully' });
+          await SunglassesService.CreateSunglassesService(sunglassesDetails);
+          res.status(201).json({ message: 'Sunglasses created successfully' });
+        } catch (error) {
+          res.status(400).json({ error: error.message });
         }
-        catch (error) {
-            res.status(400).json({ error: error.message });
-        }
-    }
+    };
     module.exports.FindSunglassesByIdController = async (req, res) => {
         const { id } = req.params
         try {
