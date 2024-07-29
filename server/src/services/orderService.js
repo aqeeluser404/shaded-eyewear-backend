@@ -130,7 +130,7 @@
                     { new: true }
                 );
                 
-                return true; 
+                return newOrder; // Return the created order
             } catch (error) {
                 throw error;
             }

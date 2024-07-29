@@ -9,8 +9,8 @@
         try {
             const { id } = req.params;
             const { orderData, orderTypeData } = req.body;
-            await OrderService.CreateOrderService(id, orderData, orderTypeData)
-            res.status(200).json({ message: 'Order created successfully' });
+            const order = await OrderService.CreateOrderService(id, orderData, orderTypeData)
+            res.status(201).json({ message: 'Order created successfully', order });
         }
         catch (error) {
             res.status(500).json({ message: 'Failed to create order', error: error.toString() });
