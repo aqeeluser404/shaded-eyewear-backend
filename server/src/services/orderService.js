@@ -46,9 +46,11 @@
                 orderType = new OrderType(orderTypeData);
             }
             if (order.totalAmount >= orderType.priceThreshold) {
+                // orderType.type = 'free';
                 orderType.type = 'delivery';
                 order.deliveryDate = new Date(order.orderDate.getTime() + 2*24*60*60*1000);     // 2 days in advance
             } else {
+                // orderType.type = 'charge';  
                 orderType.type = 'pickup';      
                 order.deliveryDate = null;
             }
