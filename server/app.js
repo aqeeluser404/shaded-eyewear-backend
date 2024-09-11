@@ -6,11 +6,12 @@
     const app = express()
     const compression = require('compression')
     const db = require('./database/db')
-    const cors = require('cors');
+    const cors = require('cors')
+    const morgan = require('morgan')
 /*
     config
 */
-    app.use(cors());
+    app.use(morgan('combined'))
     app.use(compression())
     app.use(express.json())
 
@@ -21,18 +22,26 @@
 /*
     middleware
 */
-    app.use((req, res, next) => {
-        res.setHeader('Access-Control-Allow-Origin', '*');
-        res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-        next();
-    });
+    app.use(cors({
+        origin: 'http://localhost:9000', // Allow requests from your frontend
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+        credentials: true
+    }));
 /*
     endpoints
 */
     app.get('/', (req, res) => {
         res.send('Backend is running');
-    });
+    })
+    app.get('/payment-success', (req, res) => {
+        res.send('Payment was successful!')
+    })
+    app.get('/payment-cancel', (req, res) => {
+        res.send('Payment was canceled.')
+    })
+    app.get('/payment-failure', (req, res) => {
+        res.send('Payment failed. Please try again.')
+    })
 
     const routes = [
         require('./routes/userRoutes'),

@@ -9,5 +9,5 @@
     ================================================================= admin & user routes
 */
     router.post('/gateway/pay', verifyToken, GatewayController.CreateGatewayController)
-
+    
     module.exports = router;

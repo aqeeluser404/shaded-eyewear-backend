@@ -6,17 +6,23 @@
     ================================================================= // SERVICES
 */
     // -------------------------------------------------------------- CREATE PAYMENT
-    module.exports.CreatePaymentService = async (charge, order) => {
+    module.exports.CreatePaymentService = async (checkout, order) => {
         try {
             const payment = new Payment({
-                paymentAmount: charge.amount,
-                currency: charge.currency,
+                paymentAmount: checkout.amount,
+                currency: checkout.currency,
                 paymentDate: Date.now(),
-                status: charge.status,
-                description: charge.reference,
+                status: checkout.status,
+                description: checkout.id,   // Using checkout.id as reference
                 order: order._id
-            });
+            })
             await payment.save()
+
+            // update to paid
+            order.status = 'paid';
+            order.payment = payment._id;
+            await order.save();
+
             return payment
         } catch (error) {
             throw(error)
