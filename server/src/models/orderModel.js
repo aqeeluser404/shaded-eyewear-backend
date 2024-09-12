@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
-var Schema = mongoose.Schema;
+const mongoose = require('mongoose')
+var Schema = mongoose.Schema
 
 const orderSchema = new Schema(
     {
@@ -9,7 +9,6 @@ const orderSchema = new Schema(
         },
         status: {
             type: String,
-            // enum: ['pending', 'paid'],
             default: 'pending'
         },
         totalItems: {
@@ -25,7 +24,7 @@ const orderSchema = new Schema(
             // default: 'pending'
         },
 
-        // <-----------------------------------------------------------> FKID FIELD
+        // Fk fields
         sunglasses: [{
             _id: {
                 type: Schema.Types.ObjectId,
@@ -53,4 +52,4 @@ const orderSchema = new Schema(
     }, { collection: 'Order' }
 )
 
-module.exports = mongoose.model('Order', orderSchema);
+module.exports = mongoose.model('Order', orderSchema)

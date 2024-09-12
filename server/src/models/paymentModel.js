@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
-var Schema = mongoose.Schema;
+const mongoose = require('mongoose')
+var Schema = mongoose.Schema
 
 const paymentSchema = new mongoose.Schema(
     {
@@ -7,26 +7,20 @@ const paymentSchema = new mongoose.Schema(
             type: Number,
             required: true
         },
-        // currency
         paymentDate: {
             type: Date,
             required: true
         },
         status: {
             type: String,
-            // enum: ['pending', 'processing', 'paid', 'unpaid'],
             default: 'pending'
         },
         description: {
             type: String,
             required: true
         },
-        // paymentMethod: {
-        //     type: String,
-        //     required: true
-        // },
 
-        // <-----------------------------------------------------------> FKID FIELD
+        // Fk fields
         order: {
             type: Schema.Types.ObjectId,
             ref: 'Order',
@@ -36,4 +30,4 @@ const paymentSchema = new mongoose.Schema(
     { collection: 'Payment' }
 )
 
-module.exports = mongoose.model('Payment', paymentSchema);
+module.exports = mongoose.model('Payment', paymentSchema)

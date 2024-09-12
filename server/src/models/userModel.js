@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
-var Schema = mongoose.Schema;
+const mongoose = require('mongoose')
+var Schema = mongoose.Schema
 
 const userSchema = new mongoose.Schema(
     {
@@ -77,7 +77,7 @@ const userSchema = new mongoose.Schema(
             }
         },
 
-        // <-----------------------------------------------------------> FKID FIELD
+        // Fk fields
         order: [{
             type: Schema.Types.ObjectId,
             ref: 'Order'
@@ -103,4 +103,4 @@ userSchema.methods.logout = function() {
     this.save();
 }
 
-module.exports = mongoose.model('User', userSchema);
+module.exports = mongoose.model('User', userSchema)

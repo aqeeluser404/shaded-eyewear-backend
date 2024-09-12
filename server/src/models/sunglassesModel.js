@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require('mongoose')
 
 const sunglassesSchema = new mongoose.Schema(
     {
@@ -29,4 +29,4 @@ const sunglassesSchema = new mongoose.Schema(
     }, { collection: 'Sunglasses' }
 )
 
-module.exports = mongoose.model('Sunglasses', sunglassesSchema);
+module.exports = mongoose.model('Sunglasses', sunglassesSchema)
