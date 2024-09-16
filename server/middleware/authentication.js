@@ -18,7 +18,11 @@ function requireAdmin(req, res, next) {
     next();
 }
 
-module.exports = { verifyToken, requireAdmin }
+const generateVerificationToken = (user) => {
+    return jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+}
+
+module.exports = { verifyToken, requireAdmin, generateVerificationToken }
 
 
 

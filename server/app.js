@@ -47,7 +47,8 @@
         require('./routes/userRoutes'),
         require('./routes/orderRoutes'),
         require('./routes/sunglassesRoutes'),
-        require('./routes/gatewayRoutes')
+        require('./routes/gatewayRoutes'),
+        require('./routes/emailRoutes')
     ];
 
     routes.forEach(route => {

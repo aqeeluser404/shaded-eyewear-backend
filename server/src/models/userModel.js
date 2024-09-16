@@ -37,6 +37,15 @@ const userSchema = new mongoose.Schema(
             default: Date.now
         },
 
+        verification: {
+            isVerified: {
+                type: Boolean,
+                default: false
+            },
+            verificationToken: String,
+            verificationTokenExpires: Date
+        },
+
         // LOCATION DATA
         location: {
             streetAddress: {

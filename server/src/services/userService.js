@@ -5,6 +5,8 @@ const bcrypt = require('bcryptjs')
 const User = require('../models/userModel')
 const Order = require('../models/orderModel')
 const OrderType = require('../models/orderTypeModel')
+const { generateVerificationToken } = require('../../middleware/authentication')
+const { verifyEmail } = require('../utils/sendEmail')
 
 module.exports.UserRegisterService = async (userDetails) => {
     try {
@@ -25,8 +27,19 @@ module.exports.UserRegisterService = async (userDetails) => {
             userType: userType,
             dateCreated: new Date()
         })
+        // generate email token
+        const verificationToken = generateVerificationToken(userModelData)
 
-        await userModelData.save();
+        userModelData.verification = {
+            isVerified: false,
+            verificationToken: verificationToken,
+            verificationTokenExpires: Date.now() + 3600000 // 1hr
+        }
+
+        await userModelData.save()
+
+        verifyEmail(userModelData)
+
         return true;
     } catch (error) {
         throw error;
