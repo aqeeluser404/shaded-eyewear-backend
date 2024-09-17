@@ -70,6 +70,11 @@ const userSchema = new mongoose.Schema(
             }
         },     
 
+        forgotPassword: {
+            resetPasswordToken: String,
+            resetPasswordExpires: Date
+        },
+
         // LOGIN DATA & HISTORY
         loginInfo: {
             lastLogin: {
@@ -83,7 +88,7 @@ const userSchema = new mongoose.Schema(
             loginCount: {
                 type: Number,
                 default: 0
-            }
+            },
         },
 
         // Fk fields

@@ -4,5 +4,7 @@ const SendEmailController = require('../src/controllers/sendEmailController')
 
 router.get('/verify-email', SendEmailController.VerifyEmailController)
 router.post('/resend-verification-email', SendEmailController.ResendVerificationEmailController)
+router.post('/forgot-password', SendEmailController.ForgotPasswordController)
+router.post('/reset-password', SendEmailController.ResetPasswordController)
 
 module.exports = router
