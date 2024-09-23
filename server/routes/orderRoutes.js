@@ -11,6 +11,6 @@ router.put('/order/update/:id', verifyToken, OrderController.UpdateOrdersControl
 
 // admin routes
 router.get('/admin/order/all', verifyToken, requireAdmin, OrderController.FindAllOrdersController)
-router.delete('/admin/order/delete/:id', verifyToken, requireAdmin, OrderController.DeleteOrderController)
+router.delete('/order/delete/:id', verifyToken, requireAdmin, OrderController.DeleteOrderController)
 
 module.exports = router;

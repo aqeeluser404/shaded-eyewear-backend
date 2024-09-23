@@ -23,6 +23,10 @@ const orderSchema = new Schema(
             type: Date,
             // default: 'pending'
         },
+        trackingNumber: {
+            type: String,
+            default: ''
+        },
 
         // Fk fields
         sunglasses: [{

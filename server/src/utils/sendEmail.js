@@ -6,8 +6,9 @@ const verifyEmail = (user) => {
 
     const verificationLink = `http://localhost:9000/#/verify-email?token=${user.verification.verificationToken}`
 
+    
     const mailOptions = {
-        from: `Shaded Eyewear <${process.env.EMAIL_ADDRESS}>`,
+        from: `Shaded Eyewear <noreply@${process.env.HOST_LINK}>`,      //<noreply@shaded
         to: user.email,
         subject: 'Verify Email',
         html: `
@@ -15,6 +16,7 @@ const verifyEmail = (user) => {
             <p>Thank you for registering with Shaded Eyewear. Please click the link below to verify your email address:</p>
             <p><a href="${verificationLink}">Verify Email</a></p>
             <p>If you did not create an account, please ignore this email.</p>
+            <p>For enquiries please email us at <a href="mailto:${process.env.BUSINESS_EMAIL_ADDRESS}">${process.env.BUSINESS_EMAIL_ADDRESS}</a></p>
             <p>Best regards,</p>
             <p>Shaded Eyewear Team</p>
         `
@@ -39,7 +41,7 @@ const sendResetEmail = (user, token) => {
     const resetLink = `http://localhost:9000/#/reset-password?token=${token}`;
 
     const mailOptions = {
-        from: `Shaded Eyewear <${process.env.EMAIL_ADDRESS}>`,
+        from: `Shaded Eyewear <noreply@${process.env.HOST_LINK}>`,
         to: user.email,
         subject: 'Reset Password',
         html: `
@@ -47,6 +49,7 @@ const sendResetEmail = (user, token) => {
             <p>Please click the link below to reset your password:</p>
             <p><a href="${resetLink}">Reset Password</a></p>
             <p>If you did not request to reset your password, please ignore this email.</p>
+            <p>For enquiries please email us at <a href="mailto:${process.env.BUSINESS_EMAIL_ADDRESS}">${process.env.BUSINESS_EMAIL_ADDRESS}</a></p>
             <p>Best regards,</p>
             <p>Shaded Eyewear Team</p>
         `
@@ -65,7 +68,7 @@ const purchaseNotification = (user, order) => {
     const transporter = createMailTransporter()
 
     const mailOptions = {
-        from: `Shaded Eyewear <${process.env.EMAIL_ADDRESS}>`,
+        from: `Shaded Eyewear <noreply@${process.env.HOST_LINK}>`,
         to: user.email,
         subject: `Payment Confirmation | ${order._id} `
     }
