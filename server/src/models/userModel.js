@@ -89,6 +89,7 @@ const userSchema = new mongoose.Schema(
                 type: Number,
                 default: 0
             },
+            loginToken: String
         },
 
         // Fk fields
@@ -105,11 +106,12 @@ userSchema.methods.toJSON = function() {
     return obj;
 }
 
-userSchema.methods.updateLoginStatus = function() {
+userSchema.methods.updateLoginStatus = function(token) {
     this.loginInfo.lastLogin = Date.now()
     this.loginInfo.isLoggedIn = true
     this.loginInfo.loginCount += 1
-    this.save()
+    this.loginInfo.loginToken = token
+    return this.save()
 }
 
 userSchema.methods.logout = function() {

@@ -6,6 +6,10 @@ module.exports.CreateGatewayController = async (req, res) => {
     try {
         const { orderId } = req.body
         const { checkout, order } = await GatewayService.CreateGatewayService(orderId)
+
+        if (!checkout || !order) {
+            throw new Error('Gateway service failed')
+        }
         const payment = await PaymentService.CreatePaymentService(checkout, order)
 
         console.log('Payment created:', payment)  // Log payment creation

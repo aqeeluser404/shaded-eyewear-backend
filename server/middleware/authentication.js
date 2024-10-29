@@ -1,28 +1,51 @@
 const jwt = require('jsonwebtoken')
 const jwtSecret = process.env.JWT_SECRET
+const User = require('../src/models/userModel');
+const axios = require('axios')
 
+async function checkTokens() {
+    const users = await User.find({ 'loginInfo.isLoggedIn': true })
+    for (const user of users) {
+        const token = user.loginInfo.loginToken                                                              // Access the token from the user model
+        if (token) {                                                                                         // check if the token is still valid
+            try {
+                jwt.verify(token, jwtSecret);
+                console.log(`Token for user ${user._id} is valid.`)
+            } catch (err) {
+                if (err.name === 'TokenExpiredError') {                                                     // Handle token expiration
+                    user.loginInfo.isLoggedIn = false
+                    user.loginInfo.loginToken = null                                                        // Clear the token
+                    await user.save();
+                    console.log(`User ${user._id} logged out due to expired token`);
+
+                    try {                                                                                   // Call the logout controller to clear the cookie
+                        await axios.post(`http://localhost:${process.env.PORT}/user/logout/${user._id}`)
+                    } catch (error) {
+                        console.error(`Failed to log out user ${user._id}:`, error)
+                    }
+                }
+            }
+        }
+    }
+}
 function verifyToken(req, res, next) {
-    const token = req.header('auth-token') // 'auth-token': token
-    if (!token) return res.status(401).send('Access Denied')
+    const token = req.cookies.token
+    if (!token) 
+        return res.status(401).send('Access Denied')
     try {
-        const verified = jwt.verify(token, jwtSecret);
-        req.user = verified;
-        next();
+        const verified = jwt.verify(token, jwtSecret)
+        req.user = verified
+        next()
     } catch {
         res.status(400).send('Invalid Token')
     }
 }
-
 function requireAdmin(req, res, next) {
     if (req.user.userType !== 'admin') return res.status(403).send('Admin access required')
     next();
 }
 
-const generateVerificationToken = (user) => {
-    return jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-}
-
-module.exports = { verifyToken, requireAdmin, generateVerificationToken }
+module.exports = { verifyToken, requireAdmin, checkTokens }
 
 
 

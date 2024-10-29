@@ -5,7 +5,7 @@ const bcrypt = require('bcryptjs')
 const User = require('../models/userModel')
 const Order = require('../models/orderModel')
 const OrderType = require('../models/orderTypeModel')
-const { generateVerificationToken } = require('../../middleware/authentication')
+// const { generateVerificationToken } = require('../../middleware/authentication')
 const { verifyEmail } = require('../utils/sendEmail')
 
 module.exports.UserRegisterService = async (userDetails) => {
@@ -27,17 +27,17 @@ module.exports.UserRegisterService = async (userDetails) => {
             userType: userType,
             dateCreated: new Date()
         })
-        // generate email token
-        const verificationToken = generateVerificationToken(userModelData)
 
+        // generate email token
+        const verificationToken = jwt.sign({ userId: userModelData._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
         userModelData.verification = {
             isVerified: false,
             verificationToken: verificationToken,
-            verificationTokenExpires: Date.now() + 3600000 // 1hr
+            verificationTokenExpires: Date.now() + 3600000          // 1 hour
         }
-
         await userModelData.save()
 
+        // Send verification email
         verifyEmail(userModelData)
 
         return true;
@@ -47,7 +47,6 @@ module.exports.UserRegisterService = async (userDetails) => {
 }
 module.exports.UserLoginService = async (username, email, password) => {
     try {
-        // Search for user with username or email
         const user = await User.findOne({
             $or: [
                 { username: username },
@@ -60,11 +59,8 @@ module.exports.UserLoginService = async (username, email, password) => {
         const validPassword = await bcrypt.compare(password, user.password);
         if (!validPassword) 
             throw new Error('Invalid password')
-
-        // Update login status
-        user.updateLoginStatus()
         
-        const token = jwt.sign({ _id: user._id, userType: user.userType }, jwtSecret);
+        const token = jwt.sign({ _id: user._id, userType: user.userType }, jwtSecret, { expiresIn: '24h' });
         return token;
     } catch (error) {
         throw error;

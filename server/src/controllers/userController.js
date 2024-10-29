@@ -9,18 +9,30 @@ module.exports.UserRegisterController = async (req, res) => {
     }
 }
 module.exports.UserLoginController = async (req, res) => {
-    const { username, email, password } = req.body
     try {
-        const token = await UserService.UserLoginService(username, email, password);
-        res.header('auth-token', token).send(token)    // change from json to ensure token works
+        const { username, email, password } = req.body
+        const token = await UserService.UserLoginService(username, email, password)
+
+        const user = await UserService.FindUserByTokenService(token)                                                        // Update login status
+        await user.updateLoginStatus(token)
+
+        const isProduction = process.env.NODE_ENV === 'production'
+        // const maxAge = 1 * 60 * 1000                                                                                     // 1 minute in milliseconds   
+        const maxAge = 24 * 60 * 60 * 1000;                                                                                 // 1 day in milliseconds  
+        res.cookie('token', token, { httpOnly: false, secure: isProduction, sameSite: 'strict', maxAge: maxAge })           // creating cookie 
+        res.send('Login successful')
+
     } catch (error) {
-        res.status(400).json({ error: error.message })
+        res.status(400).send(error.message)
     }
 }
 module.exports.UserLogoutController = async (req, res) => {
     const { id } = req.params
     try {
         await UserService.UserLogoutService(id)
+
+        const isProduction = process.env.NODE_ENV === 'production'                                                          // clearing the cookie 
+        res.clearCookie('token', { httpOnly: false, secure: isProduction, sameSite: 'strict' })
         res.json({ message: 'User logged out successfully' })
     } catch (error) {
         res.status(400).json({ error: error.message })
@@ -54,18 +66,14 @@ module.exports.FindUserByIdController = async (req, res) => {
 }
 module.exports.FindUserByTokenController = async (req, res) => {
     try {
-        if (req.headers['auth-token']) {
-            const token = req.headers['auth-token'];
-            // const token = req.headers.authorization.split(' ')[1];
-            const user = await UserService.FindUserByTokenService(token)
-            res.json(user)
+        const token = req.cookies.token
+        if (!token) {
+            return res.status(401).json({ message: 'Access Denied' })
         }
-        else {
-            res.status(400).json({ error: 'Authorization header is missing' })
-        }
-    } 
-    catch (error) {
-        res.status(500).json({ error: error.message })
+        const user = await UserService.FindUserByTokenService(token)
+        res.json(user)
+    } catch (error) {
+        res.status(500).json({ message: error.message })
     }
 }
 module.exports.CreateUserController = async (req, res) => {
@@ -107,13 +115,3 @@ module.exports.DeleteUserController = async (req, res) => {
         res.status(404).json({ error: error.message })
     }
 }
-
-// module.exports.UserForgotPasswordController = async (req, res) => {
-//     try {
-//         const email = req.body.email;
-//         const message = await UserService.UserForgotPasswordService(req, email);
-//         res.status(200).json({ message: message });
-//     } catch (error) {
-//         res.status(500).json({ error: error.toString() });
-//     }
-// }

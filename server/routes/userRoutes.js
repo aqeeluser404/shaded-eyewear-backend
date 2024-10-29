@@ -3,7 +3,7 @@ const router = express.Router();
 const UserController = require('../src/controllers/userController');
 const { verifyToken, requireAdmin } = require('../middleware/authentication');
 
-router.post('/user/logout/:id', verifyToken, UserController.UserLogoutController)
+router.post('/user/logout/:id', UserController.UserLogoutController)
 router.get('/user/view', verifyToken, UserController.FindUserByTokenController)
 router.get('/user/view/:id', verifyToken, UserController.FindUserByIdController)
 router.put('/user/update/:id', verifyToken, UserController.UpdateUserController)

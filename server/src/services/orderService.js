@@ -39,13 +39,12 @@ class OrderService {
             orderType = new OrderType(orderTypeData);
         }
         if (order.totalAmount >= orderType.priceThreshold) {
-            // orderType.type = 'free';
-            orderType.type = 'delivery';
-            order.deliveryDate = new Date(order.orderDate.getTime() + 2*24*60*60*1000);     // 2 days in advance
+            orderType.type = 'free delivery'
+            order.deliveryDate = null
+            // order.deliveryDate = new Date(order.orderDate.getTime() + 2*24*60*60*1000);     // 2 days in advance
         } else {
-            // orderType.type = 'charge';  
-            orderType.type = 'pickup';      
-            order.deliveryDate = null;
+            orderType.type = 'charge for delivery'
+            order.deliveryDate = null
         }
 
         // SAVE CALCULATED ORDER FIELDS INTO SECOND OBJECT --> save to the database

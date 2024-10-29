@@ -5,7 +5,7 @@ const orderTypeSchema = new Schema(
     {
         type: {
             type: String,
-            enum: ['pickup', 'delivery'],
+            enum: ['free delivery', 'charge for delivery'],
             required: true
         },
         priceThreshold: {
@@ -15,4 +15,4 @@ const orderTypeSchema = new Schema(
     }, { collection: 'OrderType' }
 );
 
-module.exports = mongoose.model('OrderType', orderTypeSchema);
+module.exports = mongoose.model('OrderType', orderTypeSchema)
