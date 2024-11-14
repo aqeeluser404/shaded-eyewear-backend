@@ -19,10 +19,13 @@ const orderSchema = new Schema(
             type: Number,
             required: true
         },
-        orderType: {
+        deliveryDate: {
+            type: Date,
+            // default: 'pending'
+        },
+        trackingNumber: {
             type: String,
-            enum: ['pickup', 'delivery', 'pending'],
-            required: true
+            default: ''
         },
 
         // Fk fields
@@ -46,9 +49,9 @@ const orderSchema = new Schema(
             ref: 'User',
             required: true
         },
-        deliveryStatus: {
+        orderType: {
             type: Schema.Types.ObjectId,
-            ref: 'DeliveryStatus'
+            ref: 'OrderType'
         }
     }, { collection: 'Order' }
 )

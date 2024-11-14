@@ -55,6 +55,31 @@ const sendResetEmail = (user, token) => {
         }
     })
 }
+const pickupNotification = (user, order) => {
+    const transporter = createMailTransporter();
+
+    const mailOptions = {
+        from: `Shaded Eyewear <${process.env.BUSINESS_EMAIL_ADDRESS}>`,
+        to: user.email,
+        subject: `Payment Confirmation | ${order._id}`,
+        html: `
+            <p>Dear ${user.firstName},</p>
+            <p>Thank you for purchasing with us.</p>
+            <p>Your Shaded Eyewear order <strong>#${order._id}</strong></p>
+            <p>Please bring this order confirmation email when you come to pick up your order. Our store is open from 8 AM to 5 PM, Monday to Saturday.</p>
+            <p>Best regards,</p>
+            <p>The Shaded Eyewear Team</p>
+        `
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            console.log(error.message);
+        } else {
+            console.log('Email sent successfully!');
+        }
+    });
+};
 
 // const purchaseNotification = (user, order) => {
 //     const transporter = createMailTransporter()
@@ -66,4 +91,4 @@ const sendResetEmail = (user, token) => {
 //     }
 // }
 
-module.exports = { verifyEmail, sendResetEmail }
+module.exports = { verifyEmail, sendResetEmail, pickupNotification }

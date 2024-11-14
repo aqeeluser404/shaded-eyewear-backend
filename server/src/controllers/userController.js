@@ -32,7 +32,8 @@ module.exports.UserLogoutController = async (req, res) => {
         await UserService.UserLogoutService(id)
 
         const isProduction = process.env.NODE_ENV === 'production'                                                          // clearing the cookie 
-        res.clearCookie('token', { httpOnly: false, secure: isProduction, sameSite: 'strict' })
+        // Clear the cookie with the same settings used to set it
+        res.clearCookie('token', { httpOnly: false, secure: isProduction, sameSite: 'strict', path: '/' });
         res.json({ message: 'User logged out successfully' })
     } catch (error) {
         res.status(400).json({ error: error.message })

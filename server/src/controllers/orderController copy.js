@@ -3,21 +3,12 @@ const OrderService = require('../services/orderService')
 module.exports.CreateOrderController = async (req, res) => {
     try {
         const { id } = req.params
-        const { orderData } = req.body
-        const order = await OrderService.CreateOrderService(id, orderData)
+        const { orderData, orderTypeData } = req.body
+        const order = await OrderService.CreateOrderService(id, orderData, orderTypeData)
         res.status(201).json({ message: 'Order created successfully', order })
     }
     catch (error) {
         res.status(500).json({ message: 'Failed to create order', error: error.toString() })
-    }
-}
-module.exports.OrderPickupController = async (req, res) => {
-    try {
-        const { id } = req.params
-        const orderPickup = await OrderService.OrderPickupService(id)
-        res.status(201).json({ message: 'Order Pickup created successfully', orderPickup })
-    } catch (error) {
-        res.status(500).json({ message: 'Failed to create Order Pickup', error: error.toString() })
     }
 }
 module.exports.CancelOrderController = async (req, res) => {
@@ -58,19 +49,10 @@ module.exports.FindAllMyOrdersController = async (req, res) => {
 }
 module.exports.UpdateOrdersController = async (req, res) => {
     try {
-        const { orderData } = req.body;
+        const { orderData, orderTypeData } = req.body;
         const { id } = req.params
 
-        const updatedOrder = await OrderService.UpdateOrdersService(id, orderData)
-        res.status(200).json(updatedOrder)
-    } catch (error) {
-        res.status(500).json({ message: 'Failed to update order', error: error.toString() })
-    }
-}
-module.exports.UpdatePickupOrdersController = async (req, res) => {
-    try {
-        const { id } = req.params
-        const updatedOrder = await OrderService.UpdatePickupOrdersService(id)
+        const updatedOrder = await OrderService.UpdateOrdersService(id, orderData, orderTypeData)
         res.status(200).json(updatedOrder)
     } catch (error) {
         res.status(500).json({ message: 'Failed to update order', error: error.toString() })

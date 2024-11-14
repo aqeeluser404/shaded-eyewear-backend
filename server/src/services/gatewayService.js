@@ -4,35 +4,35 @@ const axios = require('axios')
 
 module.exports.CreateGatewayService = async (orderId) => {
     try {
-        const order = await Order.FindOrderByIdService(orderId)
-        if (!order) { throw new Error('Order not found') }
+        const order = await Order.FindOrderByIdService(orderId);
+        if (!order) { throw new Error('Order not found'); }
         
-        const user = await User.FindUserByIdService(order.user)
-        if (!user) { throw new Error('User not found') }
+        const user = await User.FindUserByIdService(order.user);
+        if (!user) { throw new Error('User not found'); }
 
         // Payment gateway code
         const response = await axios.post('https://payments.yoco.com/api/checkouts', {
             amount: order.totalAmount * 100,
             currency: 'ZAR',
-            successUrl: 'http://localhost:9000/#/payment-success',
+            successUrl: `http://localhost:9000/#/payment-success?orderId=${orderId}`,
             cancelUrl: 'http://localhost:9000/#/payment-cancel',
             failureUrl: 'http://localhost:9000/#/payment-failure'
         }, {
             headers: {
                 'Authorization': `Bearer sk_test_e02fb7dfbBDAnPW2601448c89fc4`
             }
-        })
+        });
+
         const checkout = response.data;
         console.log('Checkout created:', checkout); // Log checkout creation
 
-        return { checkout, order }
+        return { checkout, order };
 
     } catch (error) {
         console.error('Error in CreateGatewayService:', error); // Log errors
         throw error;
     }
 }
-
 // module.exports.CreateGatewayService = async (orderId) => {
 //     try {
 //         const order = await Order.FindOrderByIdService(orderId)

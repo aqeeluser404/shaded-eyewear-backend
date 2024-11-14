@@ -4,7 +4,8 @@ const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
 const User = require('../models/userModel')
 const Order = require('../models/orderModel')
-const OrderType = require('../models/orderTypeModel')
+// const OrderType = require('../models/deliveryStatusModel')
+const DeliveryStatus = require('../models/deliveryStatusModel');
 // const { generateVerificationToken } = require('../../middleware/authentication')
 const { verifyEmail } = require('../utils/sendEmail')
 
@@ -145,11 +146,28 @@ module.exports.UpdateUserService = async (id, userDetails) => {
     if (userDetails.password) {
         userDetails.password = await bcrypt.hash(userDetails.password, 10);
     }
+
+    const currentUser = await User.findById(id)
+    if (!currentUser) {
+        throw new Error('User not found')
+    }
+    const isEmailUpdated = userDetails.email && userDetails.email !== currentUser.email
+
     const user = await User.findByIdAndUpdate(id, userDetails, { new: true });
     if (!user) {
         throw new Error('User not found');
     }
-    return user;
+
+    if (isEmailUpdated) {
+        user.verification.isVerified = false
+        // generate email token
+        const verificationToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' })
+        user.verification.verificationToken = verificationToken
+        user.verification.verificationTokenExpires = Date.now() + 3600000                   // 1 hour
+    }
+
+    await user.save()
+    return user
 }
 module.exports.DeleteUserService = async (id) => {
     const user = await User.findByIdAndDelete(id);
@@ -159,11 +177,11 @@ module.exports.DeleteUserService = async (id) => {
     // find order associated with user
     const orders = await Order.find({ user: id })
 
-    // Delete the associated orders with ordertype
+    // Delete the associated orders with deliverystatus
     for (let order of orders) {
-        const orderType = await OrderType.findById(order.orderType)
-        if (orderType) {
-            await OrderType.deleteOne({ _id: order.orderType })
+        const deliveryStatus = await DeliveryStatus.findById(order.deliveryStatus)
+        if (deliveryStatus) {
+            await DeliveryStatus.deleteOne({ _id: order.deliveryStatus })
         }
         await Order.deleteOne({ _id: order._id })
     }

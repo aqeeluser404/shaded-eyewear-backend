@@ -4,6 +4,7 @@ const { verifyEmail, sendResetEmail } = require('../utils/sendEmail')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
 const crypto = require('crypto');
+const Order = require('../models/orderModel')
 
 module.exports.VerifyEmailController = async (req, res) => {
     try {
@@ -88,7 +89,6 @@ module.exports.ResetPasswordController = async (req, res) => {
     try {
         const { token, password } = req.body;
         const user = await User.findOne({ 'forgotPassword.resetPasswordToken': token, 'forgotPassword.resetPasswordExpires': { $gt: Date.now() } });
-        console.log(user)
         if (!user) {
             return res.status(400).send('Password reset token is invalid or has expired.');
         }
@@ -103,4 +103,4 @@ module.exports.ResetPasswordController = async (req, res) => {
     } catch (error) {
         res.status(500).send('Error resetting password.');
     }
-};
+}

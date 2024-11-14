@@ -1,13 +1,13 @@
 const Payment = require('../models/paymentModel')
 
-module.exports.CreatePaymentService = async (checkout, order) => {
+module.exports.CreatePaymentService = async (order) => {
     try {
         const payment = new Payment({
-            paymentAmount: checkout.amount,
-            currency: checkout.currency,
+            paymentAmount: order.totalAmount,
+            currency: 'ZAR',
             paymentDate: Date.now(),
-            status: checkout.status,
-            description: checkout.id,   // Using checkout.id as reference
+            status: 'paid',
+            description: `Ordered on the ${order.orderDate}`,   // Using checkout.id as reference
             order: order._id
         })
         await payment.save()
