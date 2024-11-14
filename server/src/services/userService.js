@@ -11,7 +11,12 @@ const { verifyEmail } = require('../utils/sendEmail')
 
 module.exports.UserRegisterService = async (userDetails) => {
     try {
-        const existingUser = await User.findOne({ username: userDetails.username })
+        const existingUser = await User.findOne({
+            $or: [
+                { username: userDetails.username },
+                { email: userDetails.email }
+            ]
+        })
         if (existingUser) {
             throw new Error('Username already exists')
         }

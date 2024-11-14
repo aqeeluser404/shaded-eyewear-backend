@@ -80,15 +80,31 @@ const pickupNotification = (user, order) => {
         }
     });
 };
+const getInContactEmail = (user, message) => {
+    const transporter = createMailTransporter()
 
-// const purchaseNotification = (user, order) => {
-//     const transporter = createMailTransporter()
+    const mailOptions = {
+        from: `Shaded Eyewear <${process.env.BUSINESS_EMAIL_ADDRESS}>`,
+        to: process.env.BUSINESS_EMAIL_ADDRESS,
+        subject: `Contact Form Submission from ${user.firstName} ${user.lastName}`,
+        html: `
+            <p>Dear Shaded Eyewear Team,</p>
+            <p>You have received a new message from your contact form:</p>
+            <p><strong>Name:</strong> ${user.firstName} ${user.lastName}</p>
+            <p><strong>Email:</strong> ${user.email}</p>
+            <p><strong>Message:</strong></p>
+            <p>${message}</p>
+            <p>Best regards,</p>
+            <p>The Shaded Eyewear Team</p>
+        `
+    }
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            console.log(error.message);
+        } else {
+            console.log('Email sent successfully!');
+        }
+    })
+}
 
-//     const mailOptions = {
-//         from: `Shaded Eyewear <noreply@${process.env.HOST_LINK}>`,
-//         to: user.email,
-//         subject: `Payment Confirmation | ${order._id} `
-//     }
-// }
-
-module.exports = { verifyEmail, sendResetEmail, pickupNotification }
+module.exports = { verifyEmail, sendResetEmail, pickupNotification, getInContactEmail }

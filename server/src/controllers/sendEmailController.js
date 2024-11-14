@@ -1,6 +1,6 @@
 // const { generateVerificationToken } = require('../../middleware/authentication')
 const User = require('../models/userModel')
-const { verifyEmail, sendResetEmail } = require('../utils/sendEmail')
+const { verifyEmail, sendResetEmail, getInContactEmail } = require('../utils/sendEmail')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
 const crypto = require('crypto');
@@ -102,5 +102,21 @@ module.exports.ResetPasswordController = async (req, res) => {
         res.send('Password has been reset.');
     } catch (error) {
         res.status(500).send('Error resetting password.');
+    }
+}
+
+module.exports.GetInContactController = async (req, res) => {
+    try {
+        const { userContact, message  } = req.body
+
+        const user = await User.findOne({ email: userContact.email })
+        if (!user) {
+            return res.status(400).send('User not found.')
+        }
+        getInContactEmail(user, message)
+        res.status(200).send('Message sent successfully.')
+    } catch (error) {
+        console.error('Error sending message:', error.message)
+        res.status(500).send('Error sending message.')
     }
 }
