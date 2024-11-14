@@ -1,7 +1,7 @@
-const Order = require('../models/orderModel');
+const Order = require('../src/models/orderModel');
 const OrderType = require('../models/orderTypeModel');
-const Sunglasses = require('../models/sunglassesModel')
-const User = require('../models/userModel'); 
+const Sunglasses = require('../src/models/sunglassesModel')
+const User = require('../src/models/userModel'); 
 
 class OrderService {
     async createOrder(orderData, orderTypeData, userId) {     // CREATE ORDER WITH DELIVERY LOGIC
