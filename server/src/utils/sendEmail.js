@@ -58,17 +58,41 @@ const sendResetEmail = (user, token) => {
 const pickupNotification = (user, order) => {
     const transporter = createMailTransporter();
 
+    // const mailOptions = {
+    //     from: `Shaded Eyewear <${process.env.BUSINESS_EMAIL_ADDRESS}>`,
+    //     to: user.email,
+    //     subject: `Payment Confirmation | ${order._id}`,
+    //     html: `
+    //         <p>Dear ${user.firstName},</p>
+    //         <p>Thank you for purchasing with us.</p>
+    //         <p>Your Shaded Eyewear order <strong>#${order._id}</strong></p>
+    //         <p>Please bring this order confirmation email when you come to pick up your order. Our store is open from 8 AM to 5 PM, Monday to Saturday.</p>
+    //         <p>Additionally, please keep this email as proof of purchase for any potential returns or refunds.</p>
+    //         <p>Best regards,</p>
+    //         <p>The Shaded Eyewear Team</p>
+    //     `
+    // };
     const mailOptions = {
         from: `Shaded Eyewear <${process.env.BUSINESS_EMAIL_ADDRESS}>`,
         to: user.email,
         subject: `Payment Confirmation | ${order._id}`,
         html: `
-            <p>Dear ${user.firstName},</p>
-            <p>Thank you for purchasing with us.</p>
-            <p>Your Shaded Eyewear order <strong>#${order._id}</strong></p>
-            <p>Please bring this order confirmation email when you come to pick up your order. Our store is open from 8 AM to 5 PM, Monday to Saturday.</p>
-            <p>Best regards,</p>
-            <p>The Shaded Eyewear Team</p>
+            <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+                <p>Dear ${user.firstName},</p>
+                <p>Thank you for purchasing with us.</p>
+                <p>Your Shaded Eyewear order <strong>#${order._id}</strong></p>
+                <p><strong>Order Summary:</strong></p>
+                <ul>
+                    ${order.items.map(item => `
+                        <li>${item.quantity} x ${item.name} - ${item.price} each</li>
+                    `).join('')}
+                </ul>
+                <p><strong>Total Price:</strong> ${order.totalPrice}</p>
+                <p>Please bring this order confirmation email when you come to pick up your order. Our store is open from 8 AM to 5 PM, Monday to Saturday.</p>
+                <p>Additionally, please keep this email as proof of purchase for any potential returns or refunds.</p>
+                <p>Best regards,</p>
+                <p>The Shaded Eyewear Team</p>
+            </div>
         `
     };
 
@@ -108,3 +132,7 @@ const getInContactEmail = (user, message) => {
 }
 
 module.exports = { verifyEmail, sendResetEmail, pickupNotification, getInContactEmail }
+
+{/* <div style="text-align: center; margin-bottom: 20px;">
+<img src="https://your-logo-url.com/logo.png" alt="Shaded Eyewear Logo" style="max-width: 150px;" />
+</div> */}

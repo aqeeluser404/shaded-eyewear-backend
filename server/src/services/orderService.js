@@ -1,7 +1,8 @@
-const Order = require('../models/orderModel');
-const DeliveryStatus = require('../models/deliveryStatusModel');
+const Order = require('../models/orderModel')
+const DeliveryStatus = require('../models/deliveryStatusModel')
 const Sunglasses = require('../models/sunglassesModel')
-const User = require('../models/userModel'); 
+const User = require('../models/userModel')
+const Payment = require('../models/paymentModel')
 
 class OrderService {
     async createOrder(orderData, userId) {     // CREATE ORDER WITHOUT DELIVERY LOGIC
@@ -311,3 +312,102 @@ module.exports.DeleteOrderService = async (id) => {     // DELETE ORDER - DOES N
         throw error;
     }
 }
+
+module.exports.RefundOrderService = async (id, sunglassesToRefund) => {
+    try {
+        // find the order
+        const orderToRefund = await Order.findById(id)
+        if (!orderToRefund) 
+            throw new Error('Order not found')
+
+        let totalRefundAmount = 0
+        const refundSunglasses = []
+
+        for (const item of sunglassesToRefund) { 
+            const { _id, quantity } = item; 
+            
+            // Find the specific sunglasses to refund 
+            const sunglasses = await Sunglasses.findById(_id) 
+            if (!sunglasses) throw new Error(`Sunglasses with ID ${_id} not found`); 
+            
+            // Calculate the refund amount for this pair of sunglasses 
+            const refundAmount = sunglasses.price * quantity; 
+            totalRefundAmount += refundAmount; 
+            
+            // Add the sunglasses to the refund array 
+            refundSunglasses.push({ _id: sunglasses._id, quantity }); 
+            
+            // Remove or reduce quantity from the original order 
+            const orderSunglassIndex = orderToRefund.sunglasses.findIndex( (item) => item._id.toString() === _id.toString() ); 
+            if (orderSunglassIndex === -1) throw new Error('Sunglasses not found in order'); 
+            
+            if (orderToRefund.sunglasses[orderSunglassIndex].quantity > quantity) { 
+                orderToRefund.sunglasses[orderSunglassIndex].quantity -= quantity; 
+            } else { 
+                orderToRefund.sunglasses.splice(orderSunglassIndex, 1); 
+            } 
+        }
+
+        // for (const item of sunglassesToRefund) { 
+        //     const { _id, quantity } = item; 
+            
+        //     // Find the specific sunglasses to refund 
+        //     const sunglasses = await Sunglasses.findById(_id)
+        //     if (!sunglasses) 
+        //         throw new Error(`Sunglasses with ID ${_id} not found`)
+            
+        //     // Calculate the refund amount for this pair of sunglasses 
+        //     const refundAmount = sunglasses.price * quantity; 
+        //     totalRefundAmount += refundAmount
+            
+        //     // Add the sunglasses to the refund array 
+        //     refundSunglasses.push({ _id: sunglasses._id, quantity })
+            
+        //     // Remove or reduce quantity from the original order 
+        //     const orderSunglassIndex = orderToRefund.sunglasses.findIndex( 
+        //         (item) => item._id.toString() === _id.toString() 
+        //     )
+        //     if (orderSunglassIndex === -1) throw new Error('Sunglasses not found in order')
+            
+        //     if (orderToRefund.sunglasses[orderSunglassIndex].quantity > quantity) { 
+        //         orderToRefund.sunglasses[orderSunglassIndex].quantity -= quantity; 
+        //     } else { 
+        //         orderToRefund.sunglasses.splice(orderSunglassIndex, 1); }
+        // }
+
+        // Create a new order record for the refund 
+        const refundOrder = new Order({ 
+            orderDate: Date.now(), 
+            status: 'refunded', 
+            totalItems: refundSunglasses.reduce((acc, item) => acc + item.quantity, 0), 
+            totalAmount: -totalRefundAmount, // Negative value to indicate a refund 
+            orderType: orderToRefund.orderType, 
+            sunglasses: refundSunglasses, 
+            payment: orderToRefund.payment, 
+            user: orderToRefund.user, 
+            deliveryStatus: orderToRefund.deliveryStatus, 
+            originalOrder: orderToRefund._id,
+        })
+        await refundOrder.save()
+        
+        orderToRefund.returns = 'returned item'
+        await orderToRefund.save()
+        
+        return { success: true, message: 'Sunglasses refunded successfully' }
+    } catch (error) {
+        throw error
+    }
+}
+
+        // // Create a new payment record for the refund 
+        // const refundPayment = new Payment({ 
+        //     paymentAmount: -totalRefundAmount, // Negative value to indicate a refund 
+        //     paymentDate: orderToRefund.orderDate,
+        //     status: 'refunded',
+        //     description: `Ordered refunded on the ${orderToRefund.orderDate}`,
+        //     order: refundOrder._id, 
+        // })
+
+        // Save the new refund order and payment 
+        // await refundPayment.save()
+        

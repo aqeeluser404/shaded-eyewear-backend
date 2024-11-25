@@ -25,6 +25,10 @@ const orderSchema = new Schema(
             required: true
         },
 
+        returns: {
+            type: String,
+        },
+
         // Fk fields
         sunglasses: [{
             _id: {
@@ -49,6 +53,10 @@ const orderSchema = new Schema(
         deliveryStatus: {
             type: Schema.Types.ObjectId,
             ref: 'DeliveryStatus'
+        },
+        originalOrder: {
+            type: Schema.Types.ObjectId,
+            ref: 'Order'
         }
     }, { collection: 'Order' }
 )

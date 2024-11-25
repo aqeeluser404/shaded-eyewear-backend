@@ -85,3 +85,12 @@ module.exports.DeleteOrderController = async (req, res) => {
         res.status(500).json({ message: 'Failed to delete order', error: error.toString() })
     }
 }
+module.exports.RefundOrderController = async (req, res) => {
+    try {
+        const { orderId, sunglassesToRefund } = req.body
+        const refundedOrder = await OrderService.RefundOrderService(orderId, sunglassesToRefund)
+        res.status(200).json(refundedOrder)
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to refund order', error: error.toString() })
+    }
+}

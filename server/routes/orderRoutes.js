@@ -16,4 +16,7 @@ router.put('/order/update/status/:id', verifyToken, requireAdmin, OrderControlle
 router.get('/admin/order/all', verifyToken, requireAdmin, OrderController.FindAllOrdersController)
 router.delete('/order/delete/:id', OrderController.DeleteOrderController)
 
+// refund
+router.post('/order/refund', verifyToken, OrderController.RefundOrderController)
+
 module.exports = router;
