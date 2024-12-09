@@ -9,6 +9,7 @@ const cors = require('cors')
 const morgan = require('morgan')
 const { checkTokens } = require('./middleware/authentication');
 const cron = require('node-cron');
+const jwt = require('jsonwebtoken');
 
 app.use(morgan('dev'))
 app.use(compression())
@@ -22,8 +23,8 @@ app.use('/uploads', express.static(uploadsDir))
 
 // cors config
 const corsOptions = {
-    // origin: `${process.env.HOST_LINK}`, // Allow requests from your frontend
-    origin: 'https://shaded-eyewear-frontend.onrender.com',
+    origin: `${process.env.HOST_LINK}`, // Allow requests from your frontend
+    // origin: 'https://shaded-eyewear-frontend.onrender.com',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     credentials: true   // cookie config
 }
@@ -53,21 +54,25 @@ app.get('/health', (req, res) => {
     res.status(200).json({ status: 'UP' })
 })
 
-// Route to get the token (will be stored in httpOnly cookie)
+// Route to get the token from the HttpOnly cookie
 app.get('/get-token', (req, res) => {
-    const token = req.cookies.token; // Read the token from the cookie
-    if (token) {
-      res.send({ token }); // Send token back to frontend
-    } else {
-      res.status(404).send({ message: 'Token not found' });
+    const token = req.cookies.token
+    if (!token) {
+      return res.status(401).json({ message: 'No token found in cookie' })
     }
-  });
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET)
+      res.status(200).json({ token: token })
+    } catch (error) {
+      return res.status(403).json({ message: 'Invalid or expired token' })
+    }
+})
   
 // Route to remove the token (clear cookie)
 app.post('/remove-token', (req, res) => {
-    const isProduction = process.env.NODE_ENV === 'production';
-    res.clearCookie('token', { httpOnly: true, secure: isProduction, sameSite: 'None', path: '/' });
-    res.send({ message: 'Token removed' });
+    const isProduction = process.env.NODE_ENV === 'production'
+    res.clearCookie('token', { httpOnly: true, secure: isProduction, sameSite: 'None', path: '/' })
+    res.send({ message: 'Token removed' })
 })
 
 // user routes

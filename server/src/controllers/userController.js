@@ -57,8 +57,6 @@ module.exports.UserLoginController = async (req, res) => {
             maxAge: maxAge,
             path: '/'
         });
-        console.log('Cookie set:', { token, httpOnly: true, secure: isProduction, sameSite: 'None', path: '/', maxAge: maxAge });
-
         res.send('Login successful');
     } catch (error) {
         res.status(400).send(error.message);
