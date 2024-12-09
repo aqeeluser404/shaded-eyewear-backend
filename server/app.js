@@ -31,7 +31,7 @@ const corsOptions = {
 app.use(cors(corsOptions))
 
 // Start the scheduled task
-cron.schedule('* * * * *', () => {
+cron.schedule('*/10 * * * *', () => {
     console.log('Running token check every minute');
     checkTokens()
 })
@@ -56,23 +56,29 @@ app.get('/health', (req, res) => {
 
 // Route to get the token from the HttpOnly cookie
 app.get('/get-token', (req, res) => {
-    const token = req.cookies.token
+    // Retrieve token from the cookie
+    const token = req.cookies.token;  // Assuming cookie is named "token"
+  
     if (!token) {
-      return res.status(401).json({ message: 'No token found in cookie' })
+      return res.status(401).json({ message: 'No token found in cookie' });
     }
+  
+    // Verify the token
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET)
-      res.status(200).json({ token: token })
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      
+      // Send back the token (or other user-related info if needed)
+      res.status(200).json(token);
     } catch (error) {
-      return res.status(403).json({ message: 'Invalid or expired token' })
+      return res.status(403).json({ message: 'Invalid or expired token' });
     }
-})
+  });
   
 // Route to remove the token (clear cookie)
 app.post('/remove-token', (req, res) => {
-    const isProduction = process.env.NODE_ENV === 'production'
-    res.clearCookie('token', { httpOnly: true, secure: isProduction, sameSite: 'None', path: '/' })
-    res.send({ message: 'Token removed' })
+    const isProduction = process.env.NODE_ENV === 'production';
+    res.clearCookie('token', { httpOnly: true, secure: isProduction, sameSite: 'None', path: '/' });
+    res.send({ message: 'Token removed' });
 })
 
 // user routes
