@@ -4,7 +4,7 @@ const createMailTransporter = require('./createMailTransporter')
 const verifyEmail = (user) => {
     const transporter = createMailTransporter();
 
-    const verificationLink = `http://localhost:9000/#/verify-email?token=${user.verification.verificationToken}`
+    const verificationLink = `${process.env.HOST_LINK}/#/verify-email?token=${user.verification.verificationToken}`
     const mailOptions = {
         from: `Shaded Eyewear <${process.env.BUSINESS_EMAIL_ADDRESS}>`,
         to: user.email,
@@ -39,7 +39,7 @@ const verifyEmail = (user) => {
 const sendResetEmail = (user, token) => {
     const transporter = createMailTransporter()
 
-    const resetLink = `http://localhost:9000/#/reset-password?token=${token}`
+    const resetLink = `${process.env.HOST_LINK}/#/reset-password?token=${token}`
     const mailOptions = {
         from: `Shaded Eyewear <${process.env.BUSINESS_EMAIL_ADDRESS}>`,
         to: user.email,

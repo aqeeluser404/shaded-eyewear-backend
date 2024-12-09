@@ -14,7 +14,7 @@ module.exports.CreateGatewayService = async (orderId) => {
         const response = await axios.post('https://payments.yoco.com/api/checkouts', {
             amount: order.totalAmount * 100,
             currency: 'ZAR',
-            successUrl: `http://localhost:9000/#/payment-success?orderId=${orderId}`,
+            successUrl: `${process.env.HOST_LINK}/#/payment-success?orderId=${orderId}`,
             cancelUrl: 'http://localhost:9000/#/payment-cancel',
             failureUrl: 'http://localhost:9000/#/payment-failure'
         }, {

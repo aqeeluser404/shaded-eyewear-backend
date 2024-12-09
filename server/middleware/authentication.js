@@ -3,29 +3,6 @@ const jwtSecret = process.env.JWT_SECRET
 const User = require('../src/models/userModel');
 const axios = require('axios')
 
-// const authenticateToken = async (req, res, next) => {
-//     const token = req.cookies.token; // Get token from cookie
-//     if (!token) {
-//         return res.status(401).send('Access denied');
-//     }
-
-//     jwt.verify(token, jwtSecret, async (err, decodedUser) => {
-//         if (err) {
-//             return res.status(403).send('Token expired or invalid');
-//         }
-
-//         // Find the user by decoded user ID and check if the token is the same
-//         const user = await User.findById(decodedUser._id);
-//         if (!user || user.loginInfo.loginToken !== token) {
-//             // Token mismatch means the user was logged in somewhere else
-//             return res.status(403).send('Session invalidated. Please log in again.');
-//         }
-
-//         req.user = user; // Attach user to request object
-//         next(); // Allow the request to proceed
-//     });
-// }
-
 async function checkTokens() {
     const users = await User.find({ 'loginInfo.isLoggedIn': true })
     for (const user of users) {
@@ -42,7 +19,7 @@ async function checkTokens() {
                     console.log(`User ${user._id} logged out due to expired token`);
 
                     try {                                                                                   // Call the logout controller to clear the cookie
-                        await axios.post(`http://localhost:${process.env.PORT}/user/logout/${user._id}`)
+                        await axios.post(`${process.env.BACKEND_HOST_LINK}/user/logout/${user._id}`)
                     } catch (error) {
                         console.error(`Failed to log out user ${user._id}:`, error)
                     }
