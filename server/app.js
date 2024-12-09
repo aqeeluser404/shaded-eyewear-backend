@@ -53,6 +53,23 @@ app.get('/health', (req, res) => {
     res.status(200).json({ status: 'UP' })
 })
 
+// Route to get the token (will be stored in httpOnly cookie)
+app.get('/get-token', (req, res) => {
+    const token = req.cookies.token; // Read the token from the cookie
+    if (token) {
+      res.send({ token }); // Send token back to frontend
+    } else {
+      res.status(404).send({ message: 'Token not found' });
+    }
+  });
+  
+// Route to remove the token (clear cookie)
+app.post('/remove-token', (req, res) => {
+    const isProduction = process.env.NODE_ENV === 'production';
+    res.clearCookie('token', { httpOnly: true, secure: isProduction, sameSite: 'None', path: '/' });
+    res.send({ message: 'Token removed' });
+})
+
 // user routes
 const routes = [
     require('./routes/userRoutes'),
