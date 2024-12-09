@@ -236,6 +236,19 @@ module.exports.FindAllMyOrdersService = async (userId) => {
         throw error
     }
 }
+module.exports.FindAllMyReturnsService = async (userId) => {
+    try {
+        const userReturns = await User.findById(userId)
+        if (!userReturns) {
+            throw new Error('User not found')
+        }
+        const returns = await Order.find({ _id: { $in: userReturns.refundedOrders } })
+        return returns
+    }
+    catch (error) {
+        throw error
+    }
+}
 module.exports.UpdateOrdersService = async (id, orderData) => {     // UPDATE ORDER - ADDS NEW SUNGLASSES TO THE ORDER
     try {
         // Fetch the order to update
@@ -283,35 +296,68 @@ module.exports.UpdatePickupOrdersService = async (id) => {
     }
 }
 
-module.exports.DeleteOrderService = async (id) => {     // DELETE ORDER - DOES NOT ADD STOCK OF SUNGLASSES BACK
+module.exports.DeleteOrderService = async (id) => {
     try {
-        // Fetch the order to delete
         const orderToDelete = await Order.findById(id);
         if (!orderToDelete) {
             throw new Error('Order not found');
         }
-        // Remove the order from the user
+
+        console.log('Order to delete:', orderToDelete);
+
+        const refundedOrder = await Order.findOne({ originalOrder: orderToDelete._id }, '_id');
+        if (!refundedOrder) {
+            console.warn('No refunded order associated with this order.');
+        }
+
         const updatedUser = await User.findOneAndUpdate(
             { _id: orderToDelete.user },
-            { $pull: { order: orderToDelete._id } }
-        )
+            {
+                $pull: {
+                    order: orderToDelete._id,
+                    refundedOrders: refundedOrder ? refundedOrder._id : null,
+                },
+            },
+            { new: true }
+        );
         if (!updatedUser) {
-            throw new Error('Failed to update user');
+            console.warn('Failed to update user for order:', orderToDelete._id);
         }
-        // Delete the associated DeliveryStatus if it exists
+
+        if (orderToDelete.payment) {
+            const deletedPayment = await Payment.findByIdAndDelete(orderToDelete.payment);
+            if (!deletedPayment) {
+                console.warn('Payment not found for deletion:', orderToDelete.payment);
+            }
+        }
+
         if (orderToDelete.deliveryStatus) {
             const deletedDeliveryStatus = await DeliveryStatus.findByIdAndDelete(orderToDelete.deliveryStatus);
             if (!deletedDeliveryStatus) {
-                throw new Error('Failed to delete DeliveryStatus');
+                console.warn('DeliveryStatus not found for deletion:', orderToDelete.deliveryStatus);
             }
         }
-        // Delete the order
-        const deletedOrder = await Order.findByIdAndDelete(id);
+
+        const deletedOrder = await Order.findByIdAndDelete(orderToDelete._id);
+        if (!deletedOrder) {
+            throw new Error('Failed to delete order');
+        }
+
+        if (refundedOrder) {
+            const deletedRefund = await Order.findByIdAndDelete(refundedOrder._id);
+            if (!deletedRefund) {
+                console.warn('Failed to delete refunded order:', refundedOrder._id);
+            }
+        }
+
+        console.log('Order deletion completed successfully');
         return true;
     } catch (error) {
+        console.error('Error in DeleteOrderService:', error.message, error.stack);
         throw error;
     }
-}
+};
+
 
 module.exports.RefundOrderService = async (id, sunglassesToRefund) => {
     try {
@@ -323,30 +369,30 @@ module.exports.RefundOrderService = async (id, sunglassesToRefund) => {
         let totalRefundAmount = 0
         const refundSunglasses = []
 
-        for (const item of sunglassesToRefund) { 
-            const { _id, quantity } = item; 
+        // for (const item of sunglassesToRefund) { 
+        //     const { _id, quantity } = item; 
             
-            // Find the specific sunglasses to refund 
-            const sunglasses = await Sunglasses.findById(_id) 
-            if (!sunglasses) throw new Error(`Sunglasses with ID ${_id} not found`); 
+        //     // Find the specific sunglasses to refund 
+        //     const sunglasses = await Sunglasses.findById(_id) 
+        //     if (!sunglasses) throw new Error(`Sunglasses with ID ${_id} not found`); 
             
-            // Calculate the refund amount for this pair of sunglasses 
-            const refundAmount = sunglasses.price * quantity; 
-            totalRefundAmount += refundAmount; 
+        //     // Calculate the refund amount for this pair of sunglasses 
+        //     const refundAmount = sunglasses.price * quantity; 
+        //     totalRefundAmount += refundAmount; 
             
-            // Add the sunglasses to the refund array 
-            refundSunglasses.push({ _id: sunglasses._id, quantity }); 
+        //     // Add the sunglasses to the refund array 
+        //     refundSunglasses.push({ _id: sunglasses._id, quantity }); 
             
-            // Remove or reduce quantity from the original order 
-            const orderSunglassIndex = orderToRefund.sunglasses.findIndex( (item) => item._id.toString() === _id.toString() ); 
-            if (orderSunglassIndex === -1) throw new Error('Sunglasses not found in order'); 
+        //     // Remove or reduce quantity from the original order 
+        //     const orderSunglassIndex = orderToRefund.sunglasses.findIndex( (item) => item._id.toString() === _id.toString() ); 
+        //     if (orderSunglassIndex === -1) throw new Error('Sunglasses not found in order'); 
             
-            if (orderToRefund.sunglasses[orderSunglassIndex].quantity > quantity) { 
-                orderToRefund.sunglasses[orderSunglassIndex].quantity -= quantity; 
-            } else { 
-                orderToRefund.sunglasses.splice(orderSunglassIndex, 1); 
-            } 
-        }
+        //     if (orderToRefund.sunglasses[orderSunglassIndex].quantity > quantity) { 
+        //         orderToRefund.sunglasses[orderSunglassIndex].quantity -= quantity; 
+        //     } else { 
+        //         orderToRefund.sunglasses.splice(orderSunglassIndex, 1); 
+        //     } 
+        // }
 
         // for (const item of sunglassesToRefund) { 
         //     const { _id, quantity } = item; 
@@ -375,6 +421,22 @@ module.exports.RefundOrderService = async (id, sunglassesToRefund) => {
         //         orderToRefund.sunglasses.splice(orderSunglassIndex, 1); }
         // }
 
+        // Process refund for each item in sunglassesToRefund
+        for (const item of sunglassesToRefund) { 
+            const { _id, quantity } = item; 
+            
+            // Find the specific sunglasses to refund 
+            const sunglasses = await Sunglasses.findById(_id); 
+            if (!sunglasses) throw new Error(`Sunglasses with ID ${_id} not found`); 
+            
+            // Calculate the refund amount for this pair of sunglasses 
+            const refundAmount = sunglasses.price * quantity; 
+            totalRefundAmount += refundAmount; 
+            
+            // Add the sunglasses to the refund array 
+            refundSunglasses.push({ _id: sunglasses._id, quantity }); 
+        }
+
         // Create a new order record for the refund 
         const refundOrder = new Order({ 
             orderDate: Date.now(), 
@@ -388,9 +450,31 @@ module.exports.RefundOrderService = async (id, sunglassesToRefund) => {
             deliveryStatus: orderToRefund.deliveryStatus, 
             originalOrder: orderToRefund._id,
         })
+
+        // Create a new payment record for the refund 
+        // const refundPayment = new Payment({ 
+        //     paymentAmount: -totalRefundAmount, // Negative value to indicate a refund 
+        //     paymentDate: Date.now(), 
+        //     status: 'refunded', 
+        //     description: `Order refunded on ${Date.now()}`, 
+        //     order: refundOrder._id,
+        // })
+
+        // --------------------------------------------------------------------------
+
+        // save the new order for refunds
         await refundOrder.save()
-        
-        orderToRefund.returns = 'returned item'
+        // await refundPayment.save()
+
+        // // add refund to the user
+        await User.findOneAndUpdate(
+            { _id: orderToRefund.user },
+            { $push: { refundedOrders: refundOrder._id } },
+            { new: true }
+        )
+
+        // update old order status
+        orderToRefund.returns = 'returned item(s)'
         await orderToRefund.save()
         
         return { success: true, message: 'Sunglasses refunded successfully' }

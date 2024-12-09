@@ -48,6 +48,9 @@ app.get('/payment-cancel', (req, res) => {
 app.get('/payment-failure', (req, res) => {
     res.send('Payment failed. Please try again.')
 })
+app.get('/health', (req, res) => {
+    res.status(200).json({ status: 'UP' })
+})
 
 // user routes
 const routes = [

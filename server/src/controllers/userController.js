@@ -8,24 +8,62 @@ module.exports.UserRegisterController = async (req, res) => {
         res.status(400).json({ error: error.message })
     }
 }
+// module.exports.UserLoginController = async (req, res) => {
+//     try {
+//         const { username, email, password } = req.body
+//         const token = await UserService.UserLoginService(username, email, password)
+
+//         const user = await UserService.FindUserByTokenService(token)                                                        // Update login status
+//         await user.updateLoginStatus(token)
+
+//         const isProduction = process.env.NODE_ENV === 'production'
+//         // const maxAge = 1 * 60 * 1000                                                                                     // 1 minute in milliseconds   
+//         const maxAge = 24 * 60 * 60 * 1000;                                                                                 // 1 day in milliseconds  
+//         res.cookie('token', token, { httpOnly: false, secure: isProduction, sameSite: 'strict', maxAge: maxAge })           // creating cookie 
+//         res.send('Login successful')
+
+//     } catch (error) {
+//         res.status(400).send(error.message)
+//     }
+// }
 module.exports.UserLoginController = async (req, res) => {
     try {
-        const { username, email, password } = req.body
-        const token = await UserService.UserLoginService(username, email, password)
+        const { username, email, password } = req.body;
+        const token = await UserService.UserLoginService(username, email, password);
 
-        const user = await UserService.FindUserByTokenService(token)                                                        // Update login status
-        await user.updateLoginStatus(token)
+        const user = await UserService.FindUserByTokenService(token); // Get the user from the token
+        if (user.loginInfo.isLoggedIn && user.loginInfo.loginToken !== token) {
 
-        const isProduction = process.env.NODE_ENV === 'production'
-        // const maxAge = 1 * 60 * 1000                                                                                     // 1 minute in milliseconds   
-        const maxAge = 24 * 60 * 60 * 1000;                                                                                 // 1 day in milliseconds  
-        res.cookie('token', token, { httpOnly: false, secure: isProduction, sameSite: 'strict', maxAge: maxAge })           // creating cookie 
-        res.send('Login successful')
+            // User is logged in elsewhere, so log them out from previous session
+            user.loginInfo.isLoggedIn = false;
+            user.loginInfo.loginToken = null; // Clear the old token
+            await user.save();
 
+            // Clear the old cookie if user is logged in elsewhere
+            const isProduction = process.env.NODE_ENV === 'production';
+            res.clearCookie('token', { httpOnly: false, secure: isProduction, sameSite: 'strict', path: '/' });
+        }
+
+        // Update the loginInfo with the new token
+        await user.updateLoginStatus(token);
+
+        // Set new cookie with the new token
+        const isProduction = process.env.NODE_ENV === 'production';
+        const maxAge = 24 * 60 * 60 * 1000;  // 1 day
+        res.cookie('token', token, {
+            httpOnly: false,
+            secure: isProduction,
+            sameSite: 'strict',
+            maxAge: maxAge
+        });
+
+        res.send('Login successful');
     } catch (error) {
-        res.status(400).send(error.message)
+        res.status(400).send(error.message);
     }
-}
+};
+
+
 module.exports.UserLogoutController = async (req, res) => {
     const { id } = req.params
     try {

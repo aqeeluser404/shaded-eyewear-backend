@@ -39,6 +39,15 @@ module.exports.FindOrderByIdController = async (req, res) => {
         res.status(500).json({ message: 'Failed to find order', error: error.toString() })
     }
 }
+module.exports.FindAllMyReturnsController = async (req, res) => {
+    try {
+        const { id } = req.params
+        const returns = await OrderService.FindAllMyReturnsService(id);
+        res.status(200).json(returns)
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to find return', error: error.toString() })
+    }
+}
 module.exports.FindAllOrdersController = async (req, res) => {
     try {
         const orders = await OrderService.FindAllOrdersServices()

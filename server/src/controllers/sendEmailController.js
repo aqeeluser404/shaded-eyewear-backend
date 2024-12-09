@@ -52,7 +52,9 @@ module.exports.ResendVerificationEmailController = async (req, res) => {
         // generate email token
         const verificationToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' })
         user.verification.verificationToken = verificationToken
-        user.verification.verificationTokenExpires = Date.now() + 3600000                   // 1 hour
+        // user.verification.verificationTokenExpires = Date.now() + 3600000                   // 1 hour
+        user.verification.verificationTokenExpires = Date.now() + 86400000; // 24 hours
+
         await user.save()
 
         verifyEmail(user)                                                                   // Send verification email

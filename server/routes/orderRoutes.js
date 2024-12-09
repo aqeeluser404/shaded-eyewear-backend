@@ -8,6 +8,7 @@ router.post('/order/create-pickup/:id', verifyToken, OrderController.OrderPickup
 
 router.put('/order/cancel-order/:id', OrderController.CancelOrderController)
 router.get('/order/my-orders/:id', verifyToken, OrderController.FindAllMyOrdersController)
+router.get('/order/my-returns/:id', verifyToken, OrderController.FindAllMyReturnsController)
 router.get('/order/view/:id', verifyToken, OrderController.FindOrderByIdController)
 router.put('/order/update/:id', verifyToken, OrderController.UpdateOrdersController)
 router.put('/order/update/status/:id', verifyToken, requireAdmin, OrderController.UpdatePickupOrdersController)

@@ -39,7 +39,8 @@ module.exports.UserRegisterService = async (userDetails) => {
         userModelData.verification = {
             isVerified: false,
             verificationToken: verificationToken,
-            verificationTokenExpires: Date.now() + 3600000          // 1 hour
+            // verificationTokenExpires: Date.now() + 3600000          // 1 hour
+            verificationTokenExpires: Date.now() + 86400000            // 24 hours
         }
         await userModelData.save()
 

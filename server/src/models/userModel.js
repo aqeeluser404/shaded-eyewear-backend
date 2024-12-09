@@ -96,6 +96,10 @@ const userSchema = new mongoose.Schema(
         order: [{
             type: Schema.Types.ObjectId,
             ref: 'Order'
+        }],
+        refundedOrders: [{
+            type: Schema.Types.ObjectId,
+            ref: 'Order'
         }]
     }, { collection: 'User' }
 )
@@ -110,12 +114,18 @@ userSchema.methods.updateLoginStatus = function(token) {
     this.loginInfo.lastLogin = Date.now()
     this.loginInfo.isLoggedIn = true
     this.loginInfo.loginCount += 1
-    this.loginInfo.loginToken = token
+
+    if (this.loginInfo.loginToken !== token) {
+        this.loginInfo.loginToken = token
+    }
+
+    // this.loginInfo.loginToken = token
     return this.save()
 }
 
 userSchema.methods.logout = function() {
     this.loginInfo.isLoggedIn = false;
+    this.loginInfo.loginToken = null;
     this.save();
 }
 
