@@ -41,7 +41,7 @@ module.exports.UserLoginController = async (req, res) => {
 
             // Clear the old cookie if user is logged in elsewhere
             const isProduction = process.env.NODE_ENV === 'production';
-            res.clearCookie('token', { httpOnly: false, secure: isProduction, sameSite: 'None', path: '/' });
+            res.clearCookie('token', { httpOnly: true, secure: isProduction, sameSite: 'None', path: '/' });
         }
 
         // Update the loginInfo with the new token
@@ -51,13 +51,13 @@ module.exports.UserLoginController = async (req, res) => {
         const isProduction = process.env.NODE_ENV === 'production';
         const maxAge = 24 * 60 * 60 * 1000;  // 1 day
         res.cookie('token', token, {
-            httpOnly: false,
+            httpOnly: true,
             secure: isProduction,
             sameSite: 'None',
             maxAge: maxAge,
             path: '/'
         });
-        console.log('Cookie set:', { token, httpOnly: false, secure: isProduction, sameSite: 'None', path: '/', maxAge: maxAge });
+        console.log('Cookie set:', { token, httpOnly: true, secure: isProduction, sameSite: 'None', path: '/', maxAge: maxAge });
 
         res.send('Login successful');
     } catch (error) {
