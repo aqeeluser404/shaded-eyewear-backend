@@ -22,7 +22,7 @@ app.use('/uploads', express.static(uploadsDir))
 
 // cors config
 const corsOptions = {
-    origin: process.env.HOST_LINK, // Allow requests from your frontend
+    origin: `${process.env.HOST_LINK}`, // Allow requests from your frontend
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     credentials: true   // cookie config
 }
