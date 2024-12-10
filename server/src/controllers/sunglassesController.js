@@ -63,6 +63,7 @@ const SunglassesService = require('../services/sunglassesService')
 //       res.status(400).json({ error: error.message });
 //     }
 // }
+
 // Function to pause execution for a given number of milliseconds
 const sleep = (milliseconds) => new Promise(resolve => setTimeout(resolve, milliseconds));
 
@@ -83,13 +84,15 @@ const uploadImageToImgur = async (file, retries = 3, delay = 1000) => {
             timeout: 60000 // 60 seconds timeout
         });
 
-        // Log rate limit headers
-        console.log('Rate Limit:', response.headers['x-post-rate-limit-limit']);
-        console.log('Rate Limit Remaining:', response.headers['x-post-rate-limit-remaining']);
-        console.log('Rate Limit Reset:', response.headers['x-post-rate-limit-reset']);
-
         return response.data.data.link;
     } catch (error) {
+        // Log rate limit headers if available
+        if (error.response) {
+            console.error('Rate Limit:', error.response.headers['x-post-rate-limit-limit']);
+            console.error('Rate Limit Remaining:', error.response.headers['x-post-rate-limit-remaining']);
+            console.error('Rate Limit Reset:', error.response.headers['x-post-rate-limit-reset']);
+        }
+
         if (error.response && error.response.status === 429 && retries > 0) {
             console.log(`Rate limit exceeded, retrying after ${delay}ms...`);
             await sleep(delay);
@@ -123,6 +126,7 @@ module.exports.CreateSunglassesController = async (req, res) => {
         res.status(400).json({ error: 'An error occurred while uploading the image' });
     }
 };
+
 
 module.exports.FindSunglassesByIdController = async (req, res) => {
     const { id } = req.params
