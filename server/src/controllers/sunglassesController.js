@@ -63,12 +63,11 @@ const SunglassesService = require('../services/sunglassesService')
 //       res.status(400).json({ error: error.message });
 //     }
 // }
-
 // Function to pause execution for a given number of milliseconds
 const sleep = (milliseconds) => new Promise(resolve => setTimeout(resolve, milliseconds));
 
-// Function to upload a single image to Imgur with retry logic
-const uploadImageToImgur = async (file, retries = 3) => {
+// Function to upload a single image to Imgur with exponential backoff and rate limit monitoring
+const uploadImageToImgur = async (file, retries = 3, delay = 1000) => {
     const form = new FormData();
     form.append('image', file.buffer); // Use the buffer directly
     form.append('type', 'file'); // Indicate that it's a file buffer
@@ -77,19 +76,24 @@ const uploadImageToImgur = async (file, retries = 3) => {
         const response = await axios.post('https://api.imgur.com/3/image', form, {
             headers: {
                 ...form.getHeaders(),
-                Authorization: `Bearer ${process.env.IMGUR_ACCESS_TOKEN}`, // Use your Imgur Client ID here
+                Authorization: `Bearer ${process.env.IMGUR_ACCESS_TOKEN}`, // Use your OAuth 2.0 access token here
             },
             maxContentLength: Infinity,
             maxBodyLength: Infinity,
             timeout: 60000 // 60 seconds timeout
         });
 
+        // Log rate limit headers
+        console.log('Rate Limit:', response.headers['x-post-rate-limit-limit']);
+        console.log('Rate Limit Remaining:', response.headers['x-post-rate-limit-remaining']);
+        console.log('Rate Limit Reset:', response.headers['x-post-rate-limit-reset']);
+
         return response.data.data.link;
     } catch (error) {
         if (error.response && error.response.status === 429 && retries > 0) {
-            console.log('Rate limit exceeded, retrying...');
-            await sleep(3000); // Wait for 3 seconds before retrying
-            return uploadImageToImgur(file, retries - 1);
+            console.log(`Rate limit exceeded, retrying after ${delay}ms...`);
+            await sleep(delay);
+            return uploadImageToImgur(file, retries - 1, delay * 2); // Exponential backoff
         }
         throw error;
     }
