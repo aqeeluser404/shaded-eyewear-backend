@@ -82,20 +82,20 @@ module.exports.DeleteSunglassesService = async (id) => {
     }
 
     // // Delete the images from Imgur
-    // for (const imageUrl of sunglasses.images) {
-    //     // Extract the deletehash from the image URL
-    //     const deleteHash = imageUrl.split('/').pop().split('.')[0]; // Imgur URL structure
-    //     try {
-    //         await axios.delete(`https://api.imgur.com/3/image/${deleteHash}`, {
-    //             headers: {
-    //                 Authorization: `Client-ID ${process.env.IMGUR_CLIENT_ID}`, // Use your Imgur Client ID
-    //             },
-    //         });
-    //         console.log(`Deleted image from Imgur: ${imageUrl}`);
-    //     } catch (error) {
-    //         console.error(`Failed to delete image from Imgur: ${imageUrl}`, error);
-    //     }
-    // }
+    for (const imageUrl of sunglasses.images) {
+        // Extract the deletehash from the image URL
+        const deleteHash = imageUrl.split('/').pop().split('.')[0]; 
+        try {
+            await axios.delete(`https://api.imgbb.com/1/delete/${deleteHash}`, {
+                headers: {
+                    Authorization: `Bearer ${process.env.IMGBB_API_KEY}`, 
+                },
+            });
+            console.log(`Deleted image from Imgbb: ${imageUrl}`);
+        } catch (error) {
+            console.error(`Failed to delete image from Imgbb: ${imageUrl}`, error);
+        }
+    }
 
     // Delete the sunglasses from the database
     await Sunglasses.findByIdAndDelete(id);
