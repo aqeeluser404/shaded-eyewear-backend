@@ -21,13 +21,17 @@ const SunglassesService = require('../services/sunglassesService')
 
 module.exports.CreateSunglassesController = async (req, res) => {
     const sunglassesDetails = req.body;
+    const sunglassesImg = req.files;
     const imageUrls = [];
     console.log(sunglassesDetails)
+    console.log(sunglassesImg)
     try {
       if (req.files && req.files.length > 0) {
         // Loop through files and send each one to Imgur
         for (let i = 0; i < req.files.length; i++) {
           const file = req.files[i];
+
+          await new Promise(resolve => setTimeout(resolve, 1000));
   
           // Prepare form data to send to Imgur
           const form = new FormData();
