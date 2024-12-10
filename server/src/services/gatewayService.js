@@ -19,12 +19,12 @@ module.exports.CreateGatewayService = async (orderId) => {
             failureUrl: 'http://localhost:9000/#/payment-failure'
         }, {
             headers: {
-                'Authorization': `Bearer sk_test_e02fb7dfbBDAnPW2601448c89fc4`
+                'Authorization': `Bearer ${process.env.YOCO_KEY}`
             }
         });
 
         const checkout = response.data;
-        console.log('Checkout created:', checkout); // Log checkout creation
+        // console.log('Checkout created:', checkout); // Log checkout creation
 
         return { checkout, order };
 
