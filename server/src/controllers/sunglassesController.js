@@ -62,6 +62,21 @@ const SunglassesService = require('../services/sunglassesService')
 //     }
 // }
 
+const uploadToImgur = async (file) => {
+  const form = new FormData();
+  form.append('image', file.buffer.toString('base64'));
+  form.append('type', 'base64');
+
+  const response = await axios.post('https://api.imgur.com/3/image', form, {
+    headers: {
+      ...form.getHeaders(),
+      Authorization: `Client-ID ${process.env.IMGUR_CLIENT_ID}`,
+    },
+  });
+
+  return response.data.data.link;
+};
+
 module.exports.CreateSunglassesController = async (req, res) => {
   const sunglassesDetails = req.body;
   const imageUrls = [];
@@ -71,21 +86,12 @@ module.exports.CreateSunglassesController = async (req, res) => {
       for (let i = 0; i < req.files.length; i++) {
         const file = req.files[i];
 
-        const form = new FormData();
-        form.append('image', file.buffer.toString('base64'));
-        form.append('type', 'base64');
-
-        console.log('FormData:', form);
-
-        const response = await axios.post('https://api.imgur.com/3/image', form, {
-          headers: {
-            ...form.getHeaders(),
-            Authorization: `Client-ID ${process.env.IMGUR_CLIENT_ID}`,
-          },
-        });
-
-        imageUrls.push(response.data.data.link);
+        // Introduce a delay between uploads
+        await new Promise(resolve => setTimeout(resolve, 500)); // 500ms delay
+        const imageUrl = await uploadToImgur(file);
+        imageUrls.push(imageUrl);
       }
+
       sunglassesDetails.images = imageUrls;
     } else {
       sunglassesDetails.images = [];
@@ -108,6 +114,7 @@ module.exports.CreateSunglassesController = async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 };
+
 
 module.exports.FindSunglassesByIdController = async (req, res) => {
     const { id } = req.params
