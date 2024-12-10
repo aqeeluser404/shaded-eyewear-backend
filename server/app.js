@@ -25,9 +25,12 @@ app.use(express.json())
 const corsOptions = {
     origin: process.env.HOST_LINK, // Allow requests from your frontend
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
     credentials: true   // cookie config
 }
 app.use(cors(corsOptions))
+
+app.options('*', cors(corsOptions));
 
 // Start the scheduled task
 cron.schedule('*/10 * * * *', () => {
