@@ -132,7 +132,8 @@ const SunglassesService = require('../services/sunglassesService')
 // Function to upload a single image to ImgBB
 const uploadImageToImgBB = async (file, apiKey) => {
     const form = new FormData();
-    form.append('image', file.buffer); // Use the buffer directly
+    const base64Image = Buffer.from(file.buffer).toString('base64')
+    form.append('image', base64Image);
     form.append('key', apiKey); // Your API key
 
     try {
