@@ -77,7 +77,7 @@ const uploadImageToImgur = async (file, retries = 3) => {
         const response = await axios.post('https://api.imgur.com/3/image', form, {
             headers: {
                 ...form.getHeaders(),
-                Authorization: `Client-ID ${process.env.IMGUR_CLIENT_ID}`, // Use your Imgur Client ID here
+                Authorization: `Bearer ${process.env.IMGUR_ACCESS_TOKEN}`, // Use your Imgur Client ID here
             },
             maxContentLength: Infinity,
             maxBodyLength: Infinity,
