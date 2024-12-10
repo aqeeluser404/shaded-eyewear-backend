@@ -81,19 +81,19 @@ module.exports.DeleteSunglassesService = async (id) => {
         throw new Error('Sunglasses not found');
     }
 
-    // // Delete the images from Imgur
+    // Delete the images from ImgBB
     for (const imageUrl of sunglasses.images) {
-        // Extract the deletehash from the image URL
-        const deleteHash = imageUrl.split('/').pop().split('.')[0]; 
+        // Extract the image ID from the URL
+        const imageId = imageUrl.split('/').pop().split('.')[0]; // Adjust based on ImgBB URL structure
         try {
-            await axios.delete(`https://api.imgbb.com/1/delete/${deleteHash}`, {
+            await axios.delete(`https://api.imgbb.com/1/image/${imageId}`, {
                 headers: {
-                    Authorization: `Bearer ${process.env.IMGBB_API_KEY}`, 
+                    Authorization: `Bearer ${process.env.IMGBB_API_KEY}`, // Use your ImgBB API key
                 },
             });
-            console.log(`Deleted image from Imgbb: ${imageUrl}`);
+            console.log(`Deleted image from ImgBB: ${imageUrl}`);
         } catch (error) {
-            console.error(`Failed to delete image from Imgbb: ${imageUrl}`, error);
+            console.error(`Failed to delete image from ImgBB: ${imageUrl}`, error);
         }
     }
 
