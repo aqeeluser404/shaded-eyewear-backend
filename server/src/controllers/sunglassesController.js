@@ -33,6 +33,8 @@ module.exports.CreateSunglassesController = async (req, res) => {
           const form = new FormData();
           form.append('image', file.buffer.toString('base64')); // Convert to base64
           form.append('type', 'base64');
+
+          console.log('FormData:', form);
   
           // Send the image to Imgur
           const response = await axios.post('https://api.imgur.com/3/image', form, {
