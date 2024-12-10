@@ -17,14 +17,13 @@ app.use(cookieParser())
 app.use(express.json())
 
 // required to access images on frontend for (development purposes)
-const path = require('path');
-const uploadsDir = path.join(__dirname, './uploads')
-app.use('/uploads', express.static(uploadsDir))
+// const path = require('path');
+// const uploadsDir = path.join(__dirname, './uploads')
+// app.use('/uploads', express.static(uploadsDir))
 
 // cors config
 const corsOptions = {
     origin: `${process.env.HOST_LINK}`, // Allow requests from your frontend
-    // origin: 'https://shaded-eyewear-frontend.onrender.com',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     credentials: true   // cookie config
 }
@@ -32,7 +31,7 @@ app.use(cors(corsOptions))
 
 // Start the scheduled task
 cron.schedule('*/10 * * * *', () => {
-    console.log('Running token check every minute');
+    console.log('Running token check every ten minutes');
     checkTokens()
 })
 

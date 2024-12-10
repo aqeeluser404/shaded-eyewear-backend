@@ -1,5 +1,6 @@
-const path = require('path')
-const fs = require('fs');
+// const path = require('path')
+// const fs = require('fs');
+const axios = require('axios');
 const Sunglasses = require('../models/sunglassesModel')
 
 module.exports.CreateSunglassesService = async (sunglassesDetails) => {
@@ -54,22 +55,50 @@ module.exports.UpdateSunglassesService = async (id, sunglassesDetails) => {
     }
     return sunglasses
 }
+// module.exports.DeleteSunglassesService = async (id) => {
+//     const sunglasses = await Sunglasses.findById(id)
+//     if (!sunglasses) {
+//         throw new Error('Sunglasses not found')
+//     }
+//     // Delete the image files
+//     for (const imagePath of sunglasses.images) {
+//         const uploadsPath = path.join(imagePath)
+//         fs.unlink(uploadsPath, err => {
+//             if (err) {
+//                 console.error(`Failed to delete file: ${uploadsPath}`)
+//             }
+//         });
+//     }
+//     // Delete the sunglasses from the database
+//     await Sunglasses.findByIdAndDelete(id);
+
+//     return true;
+// }
+
 module.exports.DeleteSunglassesService = async (id) => {
-    const sunglasses = await Sunglasses.findById(id)
+    const sunglasses = await Sunglasses.findById(id);
     if (!sunglasses) {
-        throw new Error('Sunglasses not found')
+        throw new Error('Sunglasses not found');
     }
-    // Delete the image files
-    for (const imagePath of sunglasses.images) {
-        const uploadsPath = path.join(imagePath)
-        fs.unlink(uploadsPath, err => {
-            if (err) {
-                console.error(`Failed to delete file: ${uploadsPath}`)
-            }
-        });
-    }
+
+    // // Delete the images from Imgur
+    // for (const imageUrl of sunglasses.images) {
+    //     // Extract the deletehash from the image URL
+    //     const deleteHash = imageUrl.split('/').pop().split('.')[0]; // Imgur URL structure
+    //     try {
+    //         await axios.delete(`https://api.imgur.com/3/image/${deleteHash}`, {
+    //             headers: {
+    //                 Authorization: `Client-ID ${process.env.IMGUR_CLIENT_ID}`, // Use your Imgur Client ID
+    //             },
+    //         });
+    //         console.log(`Deleted image from Imgur: ${imageUrl}`);
+    //     } catch (error) {
+    //         console.error(`Failed to delete image from Imgur: ${imageUrl}`, error);
+    //     }
+    // }
+
     // Delete the sunglasses from the database
     await Sunglasses.findByIdAndDelete(id);
 
     return true;
-}
+};

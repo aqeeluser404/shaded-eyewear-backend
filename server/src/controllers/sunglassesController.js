@@ -1,18 +1,62 @@
 
+
+// module.exports.CreateSunglassesController = async (req, res) => {
+//     const sunglassesDetails = req.body;
+//     if (req.files && req.files.length > 0) {
+//       sunglassesDetails.images = req.files.map(file => file.path)
+//     } else {
+//       sunglassesDetails.images = []
+//     }
+//     try {
+//       await SunglassesService.CreateSunglassesService(sunglassesDetails)
+//       res.status(201).json({ message: 'Sunglasses created successfully' })
+//     } catch (error) {
+//       res.status(400).json({ error: error.message })
+//     }
+// }
+
+const axios = require('axios');
+const FormData = require('form-data');
 const SunglassesService = require('../services/sunglassesService')
 
 module.exports.CreateSunglassesController = async (req, res) => {
     const sunglassesDetails = req.body;
-    if (req.files && req.files.length > 0) {
-      sunglassesDetails.images = req.files.map(file => file.path)
-    } else {
-      sunglassesDetails.images = []
-    }
+    const imageUrls = [];
+  
     try {
-      await SunglassesService.CreateSunglassesService(sunglassesDetails)
-      res.status(201).json({ message: 'Sunglasses created successfully' })
+      if (req.files && req.files.length > 0) {
+        // Loop through files and send each one to Imgur
+        for (let i = 0; i < req.files.length; i++) {
+          const file = req.files[i];
+  
+          // Prepare form data to send to Imgur
+          const form = new FormData();
+          form.append('image', file.buffer.toString('base64')); // Convert to base64
+          form.append('type', 'base64');
+  
+          // Send the image to Imgur
+          const response = await axios.post('https://api.imgur.com/3/image', form, {
+            headers: {
+              ...form.getHeaders(),
+              Authorization: `Client-ID ${process.env.IMGUR_CLIENT_ID}`, // Use your Imgur Client ID here
+            },
+          });
+  
+          // Store the Imgur image URL
+          imageUrls.push(response.data.data.link);
+        }
+  
+        sunglassesDetails.images = imageUrls;
+      } else {
+        sunglassesDetails.images = [];
+      }
+  
+      await SunglassesService.CreateSunglassesService(sunglassesDetails);
+  
+      res.status(201).json({ message: 'Sunglasses created successfully' });
     } catch (error) {
-      res.status(400).json({ error: error.message })
+      console.error('Error uploading image to Imgur:', error);
+      res.status(400).json({ error: error.message });
     }
 }
 module.exports.FindSunglassesByIdController = async (req, res) => {
