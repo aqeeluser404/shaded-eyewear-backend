@@ -63,30 +63,45 @@ const SunglassesService = require('../services/sunglassesService')
 //       res.status(400).json({ error: error.message });
 //     }
 // }
+
+// Function to pause execution for a given number of milliseconds
+const sleep = (milliseconds) => new Promise(resolve => setTimeout(resolve, milliseconds));
+
+// Function to upload a single image to Imgur with retry logic
+const uploadImageToImgur = async (file, retries = 3) => {
+    const form = new FormData();
+    form.append('image', file.buffer); // Use the buffer directly
+    form.append('type', 'file'); // Indicate that it's a file buffer
+
+    try {
+        const response = await axios.post('https://api.imgur.com/3/image', form, {
+            headers: {
+                ...form.getHeaders(),
+                Authorization: `Client-ID ${process.env.IMGUR_CLIENT_ID}`, // Use your Imgur Client ID here
+            },
+            maxContentLength: Infinity,
+            maxBodyLength: Infinity,
+            timeout: 60000 // 60 seconds timeout
+        });
+
+        return response.data.data.link;
+    } catch (error) {
+        if (error.response && error.response.status === 429 && retries > 0) {
+            console.log('Rate limit exceeded, retrying...');
+            await sleep(3000); // Wait for 3 seconds before retrying
+            return uploadImageToImgur(file, retries - 1);
+        }
+        throw error;
+    }
+};
+
 module.exports.CreateSunglassesController = async (req, res) => {
     const { body: sunglassesDetails, files: sunglassesImg } = req;
 
     try {
         if (sunglassesImg && sunglassesImg.length > 0) {
             // Use Promise.all to process all uploads concurrently
-            const uploadPromises = sunglassesImg.map(async (file) => {
-                const form = new FormData();
-                form.append('image', file.buffer); // Use the buffer directly
-                form.append('type', 'file'); // Indicate that it's a file buffer
-
-                const response = await axios.post('https://api.imgur.com/3/image', form, {
-                    headers: {
-                        ...form.getHeaders(),
-                        Authorization: `Client-ID ${process.env.IMGUR_CLIENT_ID}`, // Use your Imgur Client ID here
-                    },
-                    maxContentLength: Infinity,
-                    maxBodyLength: Infinity,
-                    timeout: 60000 // 60 seconds timeout
-                });
-
-                return response.data.data.link;
-            });
-
+            const uploadPromises = sunglassesImg.map(file => uploadImageToImgur(file));
             sunglassesDetails.images = await Promise.all(uploadPromises);
         } else {
             sunglassesDetails.images = [];
@@ -96,7 +111,7 @@ module.exports.CreateSunglassesController = async (req, res) => {
 
         res.status(201).json({ message: 'Sunglasses created successfully' });
     } catch (error) {
-        console.error(`Error: ${error.message}`);
+        console.error('Error uploading image to Imgur:', error.message);
         if (error.response) {
             console.error(`Status: ${error.response.status}`);
             console.error(`Data: ${JSON.stringify(error.response.data)}`);
@@ -104,6 +119,7 @@ module.exports.CreateSunglassesController = async (req, res) => {
         res.status(400).json({ error: 'An error occurred while uploading the image' });
     }
 };
+
 module.exports.FindSunglassesByIdController = async (req, res) => {
     const { id } = req.params
     try {
