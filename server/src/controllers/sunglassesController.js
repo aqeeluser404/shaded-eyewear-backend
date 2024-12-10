@@ -22,7 +22,7 @@ const SunglassesService = require('../services/sunglassesService')
 module.exports.CreateSunglassesController = async (req, res) => {
     const sunglassesDetails = req.body;
     const imageUrls = [];
-  
+    console.log(sunglassesDetails)
     try {
       if (req.files && req.files.length > 0) {
         // Loop through files and send each one to Imgur
