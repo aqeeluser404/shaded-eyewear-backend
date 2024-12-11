@@ -25,30 +25,11 @@ app.use(express.json())
 const corsOptions = {
     origin: process.env.HOST_LINK, // Allow requests from your frontend
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
+    // allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
     credentials: true   // cookie config
 }
 app.use(cors(corsOptions))
 app.options('*', cors(corsOptions))
-
-app.get('/get-token', (req, res) => {
-    const token = req.cookies.token;  // Assuming cookie is named "token"
-    if (!token) {
-        return res.status(401).json({ message: 'No token found in cookie' });
-    }
-    try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        res.status(200).json({ token });  // Send back the token
-    } catch (error) {
-        return res.status(403).json({ message: 'Invalid or expired token' });
-    }
-})
-// Route to remove the token (clear cookie)
-app.post('/remove-token', (req, res) => {
-    const isProduction = process.env.NODE_ENV === 'production';
-    res.clearCookie('token', { httpOnly: true, secure: isProduction, sameSite: 'Lax', path: '/' });
-    res.send({ message: 'Token removed' });
-})
 
 cron.schedule('*/10 * * * *', () => {
     console.log('Running token check every ten minutes');
@@ -71,6 +52,35 @@ app.get('/payment-failure', (req, res) => {
 })
 app.get('/health', (req, res) => {
     res.status(200).json({ status: 'UP' })
+})
+// Route to check if token exists
+app.get('/check-token', (req, res) => {
+    const token = req.cookies.token;
+    if (token) {
+        res.status(200).json({ exists: true });
+    } else {
+        res.status(200).json({ exists: false });
+    }
+})
+// Route to get token if token exists
+app.get('/get-token', (req, res) => {
+    const token = req.cookies.token
+  
+    if (!token) {
+      return res.status(401).json({ message: 'No token found in cookie' });
+    }
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      res.status(200).json(token);
+    } catch (error) {
+      return res.status(403).json({ message: 'Invalid or expired token' });
+    }
+});
+// Route to remove the token (clear cookie)
+app.post('/remove-token', (req, res) => {
+    const isProduction = process.env.NODE_ENV === 'production';
+    res.clearCookie('token', { httpOnly: true, secure: isProduction, sameSite: 'None', path: '/' });
+    res.send({ message: 'Token removed' });
 })
 
 // user routes
