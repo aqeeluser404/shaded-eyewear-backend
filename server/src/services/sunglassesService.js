@@ -1,7 +1,7 @@
 // const path = require('path')
 // const fs = require('fs');
-const axios = require('axios');
 const Sunglasses = require('../models/sunglassesModel')
+const ImageKit = require('imagekit');
 
 module.exports.CreateSunglassesService = async (sunglassesDetails) => {
     try {
@@ -75,25 +75,59 @@ module.exports.UpdateSunglassesService = async (id, sunglassesDetails) => {
 //     return true;
 // }
 
+// module.exports.DeleteSunglassesService = async (id) => {
+//     const sunglasses = await Sunglasses.findById(id);
+//     if (!sunglasses) {
+//         throw new Error('Sunglasses not found');
+//     }
+
+//     // Delete the images from ImgBB
+//     for (const image of sunglasses.images) {
+//         if (image.deleteUrl) { // Check if deleteUrl exists
+//             try {
+//                 console.log(`Attempting to delete image: ${image.deleteUrl}`);
+//                 const response = await axios.delete(image.deleteUrl);
+//                 console.log(`Deleted image from ImgBB: ${image.imageUrl}`);
+//                 console.log(`Response status: ${response.status}`);
+//             } catch (error) {
+//                 console.error(`Failed to delete image from ImgBB: ${image.imageUrl}`, error.message);
+//                 console.error(`Error details:`, error.response ? error.response.data : 'No response data');
+//             }
+//         }
+//     }
+
+//     // Delete the sunglasses from the database
+//     await Sunglasses.findByIdAndDelete(id);
+
+//     return true;
+// };
+
+const imageKit = new ImageKit({ 
+    publicKey: process.env.IMAGEKIT_PUBLIC_KEY, 
+    privateKey: process.env.IMAGEKIT_PRIVATE_KEY, 
+    urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT
+})
+
+const deleteImageFromImageKit = async (fileId) => {
+    try {
+        const response = await imageKit.deleteFile(fileId);
+        console.log(`Deleted image from ImageKit: ${fileId}`);
+    } catch (error) {
+        console.error(`Failed to delete image from ImageKit: ${fileId}`, error.message);
+        console.error(`Error details:`, error.response ? error.response.data : 'No response data');
+    }
+};
+
 module.exports.DeleteSunglassesService = async (id) => {
     const sunglasses = await Sunglasses.findById(id);
     if (!sunglasses) {
         throw new Error('Sunglasses not found');
     }
 
-    // Delete the images from ImgBB
-    for (const imageUrl of sunglasses.images) {
-        // Extract the image ID from the URL
-        const imageId = imageUrl.split('/').pop().split('.')[0]; // Adjust based on ImgBB URL structure
-        try {
-            await axios.delete(`https://api.imgbb.com/1/image/${imageId}`, {
-                headers: {
-                    Authorization: `Bearer ${process.env.IMGBB_API_KEY}`, // Use your ImgBB API key
-                },
-            });
-            console.log(`Deleted image from ImgBB: ${imageUrl}`);
-        } catch (error) {
-            console.error(`Failed to delete image from ImgBB: ${imageUrl}`, error);
+    // Delete the images from ImageKit
+    for (const image of sunglasses.images) {
+        if (image.fileId) {
+            await deleteImageFromImageKit(image.fileId);
         }
     }
 

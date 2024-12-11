@@ -22,10 +22,14 @@ const sunglassesSchema = new mongoose.Schema(
             type: Number,
             required: true
         },
-        images: {
-            type: [String],
-            required: false
-        }
+        // images: {
+        //     type: [String],
+        //     required: false
+        // },
+        images: [{
+            imageUrl: { type: String, required: false },
+            fileId: { type: String, required: false }
+        }]
     }, { collection: 'Sunglasses' }
 )
 
