@@ -78,7 +78,7 @@ app.get('/get-token', (req, res) => {
 // Route to remove the token (clear cookie)
 app.post('/remove-token', (req, res) => {
     const isProduction = process.env.NODE_ENV === 'production';
-    res.clearCookie('token', { httpOnly: true, secure: isProduction, sameSite: 'None', path: '/' });
+    res.clearCookie('token', { httpOnly: true, secure: isProduction, sameSite: 'lax', path: '/' });
     res.send({ message: 'Token removed' });
 })
 
