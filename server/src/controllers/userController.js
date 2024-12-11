@@ -41,7 +41,7 @@ module.exports.UserLoginController = async (req, res) => {
             user.loginInfo.isLoggedIn = false;
             user.loginInfo.loginToken = null;
             await user.save();
-            res.clearCookie('token', { httpOnly: false, secure: isProduction, sameSite: 'Strict', path: '/' });
+            res.clearCookie('token', { httpOnly: false, secure: isProduction, sameSite: 'Lax', path: '/' });
         }
 
         await user.updateLoginStatus(token);
@@ -49,7 +49,7 @@ module.exports.UserLoginController = async (req, res) => {
         res.cookie('token', token, {
             httpOnly: false,
             secure: isProduction,
-            sameSite: 'Strict',
+            sameSite: 'Lax',
             maxAge: maxAge,
             path: '/'
         });
@@ -67,7 +67,7 @@ module.exports.UserLogoutController = async (req, res) => {
 
         const isProduction = process.env.NODE_ENV === 'production'                                                          // clearing the cookie 
         // Clear the cookie with the same settings used to set it
-        res.clearCookie('token', { httpOnly: false, secure: isProduction, sameSite: 'Strict', path: '/' });
+        res.clearCookie('token', { httpOnly: false, secure: isProduction, sameSite: 'Lax', path: '/' });
         res.json({ message: 'User logged out successfully' })
     } catch (error) {
         res.status(400).json({ error: error.message })
