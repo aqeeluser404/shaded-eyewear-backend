@@ -31,8 +31,25 @@ const corsOptions = {
 app.use(cors(corsOptions))
 app.options('*', cors(corsOptions))
 
+app.get('/get-token', (req, res) => {
+    const token = req.cookies.token;  // Assuming cookie is named "token"
+    if (!token) {
+        return res.status(401).json({ message: 'No token found in cookie' });
+    }
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        res.status(200).json({ token });  // Send back the token
+    } catch (error) {
+        return res.status(403).json({ message: 'Invalid or expired token' });
+    }
+})
+// Route to remove the token (clear cookie)
+app.post('/remove-token', (req, res) => {
+    const isProduction = process.env.NODE_ENV === 'production';
+    res.clearCookie('token', { httpOnly: true, secure: isProduction, sameSite: 'Lax', path: '/' });
+    res.send({ message: 'Token removed' });
+})
 
-// Start the scheduled task
 cron.schedule('*/10 * * * *', () => {
     console.log('Running token check every ten minutes');
     checkTokens()
@@ -55,28 +72,6 @@ app.get('/payment-failure', (req, res) => {
 app.get('/health', (req, res) => {
     res.status(200).json({ status: 'UP' })
 })
-
-// app.get('/get-token', (req, res) => {
-//     const token = req.cookies.token;  // Assuming cookie is named "token"
-  
-//     if (!token) {
-//         return res.status(401).json({ message: 'No token found in cookie' });
-//     }
-
-//     try {
-//         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-//         res.status(200).json({ token });  // Send back the token
-//     } catch (error) {
-//         return res.status(403).json({ message: 'Invalid or expired token' });
-//     }
-// });
-
-// Route to remove the token (clear cookie)
-// app.post('/remove-token', (req, res) => {
-//     const isProduction = process.env.NODE_ENV === 'production';
-//     res.clearCookie('token', { httpOnly: false, secure: isProduction, sameSite: 'strict', path: '/' });
-//     res.send({ message: 'Token removed' });
-// })
 
 // user routes
 const routes = [
