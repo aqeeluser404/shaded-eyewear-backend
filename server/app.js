@@ -74,8 +74,7 @@ app.get('/get-token', (req, res) => {
     } catch (error) {
       return res.status(403).json({ message: 'Invalid or expired token' });
     }
-  });
-  
+})
 // Route to remove the token (clear cookie)
 app.post('/remove-token', (req, res) => {
     const isProduction = process.env.NODE_ENV === 'production';

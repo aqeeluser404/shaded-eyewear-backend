@@ -75,33 +75,6 @@ module.exports.UpdateSunglassesService = async (id, sunglassesDetails) => {
 //     return true;
 // }
 
-// module.exports.DeleteSunglassesService = async (id) => {
-//     const sunglasses = await Sunglasses.findById(id);
-//     if (!sunglasses) {
-//         throw new Error('Sunglasses not found');
-//     }
-
-//     // Delete the images from ImgBB
-//     for (const image of sunglasses.images) {
-//         if (image.deleteUrl) { // Check if deleteUrl exists
-//             try {
-//                 console.log(`Attempting to delete image: ${image.deleteUrl}`);
-//                 const response = await axios.delete(image.deleteUrl);
-//                 console.log(`Deleted image from ImgBB: ${image.imageUrl}`);
-//                 console.log(`Response status: ${response.status}`);
-//             } catch (error) {
-//                 console.error(`Failed to delete image from ImgBB: ${image.imageUrl}`, error.message);
-//                 console.error(`Error details:`, error.response ? error.response.data : 'No response data');
-//             }
-//         }
-//     }
-
-//     // Delete the sunglasses from the database
-//     await Sunglasses.findByIdAndDelete(id);
-
-//     return true;
-// };
-
 const imageKit = new ImageKit({ 
     publicKey: process.env.IMAGEKIT_PUBLIC_KEY, 
     privateKey: process.env.IMAGEKIT_PRIVATE_KEY, 
@@ -123,14 +96,12 @@ module.exports.DeleteSunglassesService = async (id) => {
     if (!sunglasses) {
         throw new Error('Sunglasses not found');
     }
-
     // Delete the images from ImageKit
     for (const image of sunglasses.images) {
         if (image.fileId) {
             await deleteImageFromImageKit(image.fileId);
         }
     }
-
     // Delete the sunglasses from the database
     await Sunglasses.findByIdAndDelete(id);
 
