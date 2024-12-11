@@ -56,25 +56,21 @@ app.get('/health', (req, res) => {
     res.status(200).json({ status: 'UP' })
 })
 
-// Route to get the token from the HttpOnly cookie
 app.get('/get-token', (req, res) => {
-    // Retrieve token from the cookie
     const token = req.cookies.token;  // Assuming cookie is named "token"
   
     if (!token) {
-      return res.status(401).json({ message: 'No token found in cookie' });
+        return res.status(401).json({ message: 'No token found in cookie' });
     }
-  
-    // Verify the token
+
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      
-      // Send back the token (or other user-related info if needed)
-      res.status(200).json(token);
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        res.status(200).json({ token });  // Send back the token
     } catch (error) {
-      return res.status(403).json({ message: 'Invalid or expired token' });
+        return res.status(403).json({ message: 'Invalid or expired token' });
     }
-})
+});
+
 // Route to remove the token (clear cookie)
 app.post('/remove-token', (req, res) => {
     const isProduction = process.env.NODE_ENV === 'production';

@@ -26,38 +26,33 @@ module.exports.UserRegisterController = async (req, res) => {
 //         res.status(400).send(error.message)
 //     }
 // }
+
+const isProduction = process.env.NODE_ENV === 'production';
+const maxAge = 24 * 60 * 60 * 1000;  // 1 day
+
 module.exports.UserLoginController = async (req, res) => {
     try {
         const { username, email, password } = req.body;
         const token = await UserService.UserLoginService(username, email, password);
 
-        const user = await UserService.FindUserByTokenService(token); // Get the user from the token
+        const user = await UserService.FindUserByTokenService(token);
         if (user.loginInfo.isLoggedIn && user.loginInfo.loginToken !== token) {
-
-            // User is logged in elsewhere, so log them out from previous session
             user.loginInfo.isLoggedIn = false;
-            user.loginInfo.loginToken = null; // Clear the old token
+            user.loginInfo.loginToken = null;
             await user.save();
-
-            // Clear the old cookie if user is logged in elsewhere
-            const isProduction = process.env.NODE_ENV === 'production';
-            res.clearCookie('token', { httpOnly: true, secure: isProduction, sameSite: 'lax', path: '/' });
+            res.clearCookie('token', { httpOnly: true, secure: isProduction, sameSite: 'Lax', path: '/' });
         }
 
-        // Update the loginInfo with the new token
         await user.updateLoginStatus(token);
 
-        // Set new cookie with the new token
-        const isProduction = process.env.NODE_ENV === 'production';
-        const maxAge = 24 * 60 * 60 * 1000;  // 1 day
         res.cookie('token', token, {
             httpOnly: true,
             secure: isProduction,
-            sameSite: 'lax',
+            sameSite: 'Lax',
             maxAge: maxAge,
             path: '/'
         });
-        res.send('Login successful');
+        res.status(200).json({ message: 'Login successful' });
     } catch (error) {
         res.status(400).send(error.message);
     }
@@ -71,7 +66,7 @@ module.exports.UserLogoutController = async (req, res) => {
 
         const isProduction = process.env.NODE_ENV === 'production'                                                          // clearing the cookie 
         // Clear the cookie with the same settings used to set it
-        res.clearCookie('token', { httpOnly: false, secure: isProduction, sameSite: 'lax', path: '/' });
+        res.clearCookie('token', { httpOnly: true, secure: isProduction, sameSite: 'lax', path: '/' });
         res.json({ message: 'User logged out successfully' })
     } catch (error) {
         res.status(400).json({ error: error.message })
