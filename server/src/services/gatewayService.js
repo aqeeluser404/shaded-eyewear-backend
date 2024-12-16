@@ -20,7 +20,7 @@ module.exports.CreateGatewayService = async (orderId) => {
         }, {
             headers: {
                 // 'Authorization': `Bearer ${process.env.YOCO_KEY}`
-                'Authorization': `Bearer pk_live_3b58b26a1W7KXd0c4494`
+                'Authorization': `Bearer sk_live_3b58b26a1W7KXd0c4494`
             }
         });
 
