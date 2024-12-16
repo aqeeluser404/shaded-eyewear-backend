@@ -19,7 +19,8 @@ module.exports.CreateGatewayService = async (orderId) => {
             failureUrl: 'http://localhost:9000/#/payment-failure'
         }, {
             headers: {
-                'Authorization': `Bearer ${process.env.YOCO_KEY}`
+                'Authorization': `Bearer ${process.env.YOCO_KEY}`,
+                'Content-Type': 'application/json'
             }
         });
 
