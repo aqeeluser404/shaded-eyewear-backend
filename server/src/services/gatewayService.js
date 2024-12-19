@@ -15,8 +15,8 @@ module.exports.CreateGatewayService = async (orderId) => {
             amount: order.totalAmount * 100,
             currency: 'ZAR',
             successUrl: `${process.env.HOST_LINK}/#/payment-success?orderId=${orderId}`,
-            cancelUrl: 'http://localhost:9000/#/payment-cancel',
-            failureUrl: 'http://localhost:9000/#/payment-failure'
+            cancelUrl: `${process.env.HOST_LINK}/#/payment-cancel`,
+            failureUrl: `${process.env.HOST_LINK}/#/payment-failure`
         }, {
             headers: {
                 'Authorization': `Bearer ${process.env.YOCO_KEY}`
