@@ -51,6 +51,7 @@ module.exports.UserLoginController = async (req, res) => {
         // Set new cookie with the new token
         const isProduction = process.env.NODE_ENV === 'production';
         const maxAge = 24 * 60 * 60 * 1000;  // 1 day
+        // const maxAge = 1 * 60 * 1000;  // 1 minutes
         res.cookie('token', token, {
             httpOnly: true,
             secure: isProduction,

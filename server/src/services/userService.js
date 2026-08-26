@@ -68,6 +68,7 @@ module.exports.UserLoginService = async (username, email, password) => {
             throw new Error('Invalid password')
         
         const token = jwt.sign({ _id: user._id, userType: user.userType }, jwtSecret, { expiresIn: '24h' });
+        // const token = jwt.sign({ _id: user._id, userType: user.userType }, jwtSecret, { expiresIn: '1m' });
         return token;
     } catch (error) {
         throw error;

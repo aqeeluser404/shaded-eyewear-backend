@@ -23,7 +23,7 @@ app.use(express.json())
 
 // cors config
 const corsOptions = {
-    origin: process.env.HOST_LINK, // Allow requests from your frontend
+    origin: [process.env.HOST_LINK , 'localhost:9000'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     // allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
     credentials: true   // cookie config
