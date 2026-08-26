@@ -30,12 +30,12 @@ const imageKit = new ImageKit({
 const uploadImageToImageKit = async (file) => {
     try {
         const result = await imageKit.upload({
-            file: file.buffer, // Use buffer directly for uploading
+            file: file.buffer,
             fileName: file.originalname
         });
         return {
             imageUrl: result.url,
-            fileId: result.fileId // Store this ID for deletion
+            fileId: result.fileId 
         };
     } catch (error) {
         console.error('Error uploading image to ImageKit:', error.message);
