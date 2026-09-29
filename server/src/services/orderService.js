@@ -243,6 +243,7 @@ module.exports.FindAllMyReturnsService = async (userId) => {
             throw new Error('User not found')
         }
         const returns = await Order.find({ _id: { $in: userReturns.refundedOrders } })
+            .populate('originalOrder')
         return returns
     }
     catch (error) {
