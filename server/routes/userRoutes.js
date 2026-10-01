@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const UserController = require('../src/controllers/userController');
-const { verifyToken, requireAdmin } = require('../middleware/authentication');
+const { verifyToken, requireAdmin, guestLoginLimiter } = require('../middleware/authentication');
 
 router.post('/user/logout/:id', UserController.UserLogoutController)
 router.get('/user/view', verifyToken, UserController.FindUserByTokenController)
@@ -11,6 +11,7 @@ router.delete('/user/delete/:id', verifyToken, UserController.DeleteUserControll
 
 // authentication
 router.post('/auth/login', UserController.UserLoginController)
+router.post('/auth/guest-login', guestLoginLimiter, UserController.UserGuestLoginController)
 router.post('/auth/register', UserController.UserRegisterController)
 
 // admin routes

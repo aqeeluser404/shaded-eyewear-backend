@@ -64,6 +64,46 @@ module.exports.UserLoginController = async (req, res) => {
         res.status(400).send(error.message);
     }
 }
+
+module.exports.UserGuestLoginController = async (req, res) => {
+    try {
+        const token = await UserService.UserGuestLoginService();
+
+        const user = await UserService.FindUserByTokenService(token);
+        if (user.loginInfo.isLoggedIn && user.loginInfo.loginToken !== token) {
+            // Guest was logged in elsewhere — clear the old session
+            user.loginInfo.isLoggedIn = false;
+            user.loginInfo.loginToken = null;
+            await user.save();
+
+            const isProduction = process.env.NODE_ENV === 'production';
+            res.clearCookie('token', {
+                httpOnly: true,
+                secure: isProduction,
+                sameSite: 'None',
+                path: '/',
+            });
+        }
+
+        await user.updateLoginStatus(token);
+
+        const isProduction = process.env.NODE_ENV === 'production';
+        const maxAge = 24 * 60 * 60 * 1000; // 1 day
+
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: isProduction,
+            sameSite: 'None',
+            maxAge: maxAge,
+            path: '/',
+        });
+
+        res.send('Guest login successful');
+    } catch (error) {
+        res.status(400).send(error.message);
+    }
+};
+
 module.exports.UserLogoutController = async (req, res) => {
     const { id } = req.params
     try {

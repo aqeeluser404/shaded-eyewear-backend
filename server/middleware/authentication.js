@@ -2,6 +2,15 @@ const jwt = require('jsonwebtoken')
 const jwtSecret = process.env.JWT_SECRET
 const User = require('../src/models/userModel');
 const axios = require('axios')
+const rateLimit = require('express-rate-limit')
+
+const guestLoginLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000, // 1 hour
+    max: 3,                   // 10 guest logins per IP per hour
+    message: 'Too many guest login attempts from this IP, please try again later',
+    standardHeaders: true,
+    legacyHeaders: false,
+})
 
 async function checkTokens() {
     const users = await User.find({ 'loginInfo.isLoggedIn': true })
@@ -45,7 +54,7 @@ function requireAdmin(req, res, next) {
     next();
 }
 
-module.exports = { verifyToken, requireAdmin, checkTokens }
+module.exports = { verifyToken, requireAdmin, checkTokens, guestLoginLimiter }
 
 
 

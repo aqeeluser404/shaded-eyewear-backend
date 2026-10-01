@@ -54,6 +54,9 @@ module.exports.UserRegisterService = async (userDetails) => {
 }
 module.exports.UserLoginService = async (username, email, password) => {
     try {
+        if (username === "guest") {
+
+        }
         const user = await User.findOne({
             $or: [
                 { username: username },
@@ -74,6 +77,30 @@ module.exports.UserLoginService = async (username, email, password) => {
         throw error;
     }
 }
+module.exports.UserGuestLoginService = async () => {
+    try {
+        const user = await User.findOne({ username: "guest", userType: "admin" });
+
+        if (!user) {
+            throw new Error("Guest account not configured");
+        }
+
+        const token = jwt.sign(
+            { _id: user._id, userType: user.userType },
+            jwtSecret,
+            { expiresIn: "24h" }
+        );
+
+        // Store the token on the guest so it can be invalidated if needed
+        user.loginInfo = user.loginInfo || {};
+        user.loginInfo.loginToken = token;
+        await user.save();
+
+        return token;
+    } catch (error) {
+        throw error;
+    }
+};
 module.exports.UserLogoutService = async (id) => {
     try {
         const user = await User.findById(id);
